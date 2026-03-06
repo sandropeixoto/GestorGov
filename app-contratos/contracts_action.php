@@ -29,7 +29,10 @@ try {
             'ValorMensalContrato' => $_POST['ValorMensalContrato'] ?: null,
             'ValorGlobalContrato' => $_POST['ValorGlobalContrato'],
             'NProcesso' => $_POST['NProcesso'] ?? null,
-            'ModalidadeId' => $_POST['ModalidadeId'] ?: null
+            'ModalidadeId' => $_POST['ModalidadeId'] ?: null,
+            'DiretoriaId' => $_POST['DiretoriaId'] ?: null,
+            'CategoriaContratoId' => $_POST['CategoriaContratoId'] ?: null,
+            'FonteRecursosId' => $_POST['FonteRecursosId'] ?: null
         ];
 
         if ($action === 'create') {

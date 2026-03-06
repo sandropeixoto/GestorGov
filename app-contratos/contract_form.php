@@ -21,6 +21,12 @@ $categories = $pdo->query("SELECT Id, Descricao FROM CategoriaContrato ORDER BY 
 // Fetch Modalidades for dropdown
 $modalidades = $pdo->query("SELECT Id, Descricao FROM Modalidade ORDER BY Descricao ASC")->fetchAll();
 
+// Fetch Diretorias for dropdown
+$diretorias = $pdo->query("SELECT IdDiretoria, NomeDiretoria, SiglaDiretoria FROM Diretorias ORDER BY NomeDiretoria ASC")->fetchAll();
+
+// Fetch Fontes for dropdown
+$fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY NomeFonte ASC")->fetchAll();
+
 // Fetch Main Contracts for PaiId dropdown
 $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM Contratos WHERE PaiId = 0 ORDER BY AnoContrato DESC, SeqContrato DESC")->fetchAll();
 ?>
@@ -147,6 +153,17 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                     <i class="ph ph-user-focus text-primary"></i> Fiscalização
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control md:col-span-2">
+                        <label class="label"><span class="label-text font-semibold">Diretoria Responsável</span></label>
+                        <select name="DiretoriaId" class="select select-bordered w-full">
+                            <option value="">Selecione a diretoria...</option>
+                            <?php foreach($diretorias as $d): ?>
+                                <option value="<?php echo $d['IdDiretoria']; ?>" <?php echo ($contract['DiretoriaId'] ?? '') == $d['IdDiretoria'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($d['SiglaDiretoria'] . ' - ' . $d['NomeDiretoria']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Fiscal Titular</span></label>
                         <input type="text" name="FiscalContrato" class="input input-bordered" 
@@ -176,6 +193,28 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                     <i class="ph ph-plus text-primary"></i> Outros Detalhes
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Categoria</span></label>
+                        <select name="CategoriaContratoId" class="select select-bordered w-full">
+                            <option value="">Selecione...</option>
+                            <?php foreach($categories as $cat): ?>
+                                <option value="<?php echo $cat['Id']; ?>" <?php echo ($contract['CategoriaContratoId'] ?? '') == $cat['Id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($cat['Descricao']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Fonte de Recurso</span></label>
+                        <select name="FonteRecursosId" class="select select-bordered w-full">
+                            <option value="">Selecione...</option>
+                            <?php foreach($fontes as $f): ?>
+                                <option value="<?php echo $f['IdFonte']; ?>" <?php echo ($contract['FonteRecursosId'] ?? '') == $f['IdFonte'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($f['NomeFonte']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Número do Processo</span></label>
                         <input type="text" name="NProcesso" class="input input-bordered" 

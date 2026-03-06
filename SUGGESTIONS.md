@@ -17,6 +17,11 @@
 - **Persistência de Sessão**: Filtros mantidos durante a navegação entre páginas do módulo (Implementado).
 - **Indicadores de Filtro Ativo**: Badges visuais para facilitar o reconhecimento do contexto da lista (Implementado).
 
+## [2026-03-06] Gestão de Dados Mestre (Auxiliares)
+- **Validação de Documentos**: Integrar validação de CNPJ/CPF no cadastro de prestadores.
+- **Dossiê do Fornecedor**: Visualização consolidada de todos os contratos e aditivos de um prestador específico.
+- **Integridade Referencial**: Soft-delete para tabelas auxiliares para evitar quebra de histórico em contratos antigos.
+
   🚀 Sugestões de Melhoria
 
 
