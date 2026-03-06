@@ -91,7 +91,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 <div class="text-sm breadcrumbs hidden sm:block">
                     <ul>
                         <li><a href="index.php">Início</a></li> 
-                        <li>Módulo Atual</li>
+                        <li><a href="contratos.php?clear=1">Módulo de Contratos</a></li>
                     </ul>
                 </div>
             </div>

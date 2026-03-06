@@ -3,11 +3,38 @@
 require_once 'config.php';
 require_once 'header.php';
 
-$search = $_GET['search'] ?? '';
-$status = $_GET['status'] ?? 'all';
-$days = $_GET['days'] ?? '';
+// Lógica de Persistência de Filtros
+if (!isset($_SESSION['contratos_filters'])) {
+    $_SESSION['contratos_filters'] = ['search' => '', 'status' => 'all', 'days' => '', 'ano' => ''];
+}
+
+// Se houver novos filtros via GET, atualiza a sessão
+if (isset($_GET['search']) || isset($_GET['status']) || isset($_GET['ano'])) {
+    $_SESSION['contratos_filters'] = [
+        'search' => $_GET['search'] ?? '',
+        'status' => $_GET['status'] ?? 'all',
+        'days'   => $_GET['days'] ?? '',
+        'ano'    => $_GET['ano'] ?? ''
+    ];
+}
+
+// Carrega filtros da sessão
+$search = $_SESSION['contratos_filters']['search'];
+$status = $_SESSION['contratos_filters']['status'];
+$days   = $_SESSION['contratos_filters']['days'];
+$ano    = $_SESSION['contratos_filters']['ano'];
+
+// Limpar filtros se solicitado explicitamente
+if (isset($_GET['clear'])) {
+    $_SESSION['contratos_filters'] = ['search' => '', 'status' => 'all', 'days' => '', 'ano' => ''];
+    header("Location: contratos.php");
+    exit;
+}
 
 try {
+    // Buscar anos distintos para o autocomplete
+    $available_years = $pdo->query("SELECT DISTINCT AnoContrato FROM Contratos WHERE AnoContrato IS NOT NULL AND AnoContrato > 0 ORDER BY AnoContrato DESC")->fetchAll(PDO::FETCH_COLUMN);
+
     $sql = "SELECT c.*, p.Nome as PrestadorNome,
                    GREATEST(c.VigenciaFim, COALESCE(t.MaxTacVigencia, '0000-00-00')) as VigenciaEfetiva
             FROM Contratos c 
@@ -20,6 +47,11 @@ try {
             ) t ON c.Id = t.PaiId
             WHERE c.PaiId = 0";
     $params = [];
+
+    if (!empty($ano)) {
+        $sql .= " AND c.AnoContrato = ?";
+        $params[] = intval($ano);
+    }
 
     if (!empty($search)) {
         $sql .= " AND (c.SeqContrato LIKE ? OR c.NumeroContrato LIKE ? OR c.Objeto LIKE ? OR p.Nome LIKE ?)";
@@ -66,6 +98,16 @@ try {
     <div class="card bg-base-100 shadow-md border border-base-200">
         <div class="card-body p-4">
             <form method="GET" class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="form-control w-full md:w-32">
+                    <label class="label"><span class="label-text font-semibold">Ano</span></label>
+                    <select name="ano" class="select select-bordered w-full" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        <?php foreach($available_years as $y): ?>
+                            <option value="<?php echo $y; ?>" <?php echo $ano == $y ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <div class="form-control flex-1">
                     <label class="label"><span class="label-text font-semibold">Pesquisar</span></label>
                     <div class="join w-full">
@@ -83,35 +125,66 @@ try {
                         <option value="all" <?php echo $status === 'all' ? 'selected' : ''; ?>>Todos</option>
                         <option value="active" <?php echo $status === 'active' ? 'selected' : ''; ?>>Vigentes</option>
                         <option value="expired" <?php echo $status === 'expired' ? 'selected' : ''; ?>>Vencidos</option>
-                        <option value="expiring" <?php echo $status === 'expiring' ? 'selected' : ''; ?>>A Vencer (Dias)</option>
+                        <option value="expiring" <?php echo $status === 'expiring' ? 'selected' : ''; ?>>Filtrar por Vencimento</option>
                     </select>
-                </div>
-
-                <div class="form-control <?php echo $status === 'expiring' ? '' : 'hidden'; ?>" id="days_container">
-                    <label class="label"><span class="label-text font-semibold">Dias</span></label>
-                    <input type="number" name="days" value="<?php echo htmlspecialchars($days); ?>" 
-                           class="input input-bordered w-24" onchange="this.form.submit()" placeholder="Ex: 30">
+                    <input type="hidden" name="days" value="<?php echo htmlspecialchars($days); ?>">
                 </div>
 
                 <div class="flex gap-2 mb-2 md:mb-0">
                     <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Atalhos</span></label>
+                        <label class="label"><span class="label-text font-semibold text-primary">à vencer em</span></label>
                         <div class="flex gap-2">
-                            <a href="contratos.php?status=expiring&days=30" class="btn btn-sm <?php echo ($status==='expiring' && $days==='30') ? 'btn-primary' : 'btn-outline'; ?>">30d</a>
-                            <a href="contratos.php?status=expiring&days=60" class="btn btn-sm <?php echo ($status==='expiring' && $days==='60') ? 'btn-primary' : 'btn-outline'; ?>">60d</a>
-                            <a href="contratos.php?status=expiring&days=90" class="btn btn-sm <?php echo ($status==='expiring' && $days==='90') ? 'btn-primary' : 'btn-outline'; ?>">90d</a>
+                            <a href="contratos.php?status=expiring&days=30&ano=<?php echo $ano; ?>&search=<?php echo urlencode($search); ?>" class="btn btn-sm <?php echo ($status==='expiring' && $days==='30') ? 'btn-primary' : 'btn-outline'; ?>">30d</a>
+                            <a href="contratos.php?status=expiring&days=60&ano=<?php echo $ano; ?>&search=<?php echo urlencode($search); ?>" class="btn btn-sm <?php echo ($status==='expiring' && $days==='60') ? 'btn-primary' : 'btn-outline'; ?>">60d</a>
+                            <a href="contratos.php?status=expiring&days=90&ano=<?php echo $ano; ?>&search=<?php echo urlencode($search); ?>" class="btn btn-sm <?php echo ($status==='expiring' && $days==='90') ? 'btn-primary' : 'btn-outline'; ?>">90d</a>
                         </div>
                     </div>
                 </div>
 
-                <?php if (!empty($search) || $status !== 'all' || !empty($days)): ?>
+                <?php if (!empty($search) || $status !== 'all' || !empty($days) || !empty($ano)): ?>
                 <div class="form-control">
-                    <a href="contratos.php" class="btn btn-ghost">Limpar</a>
+                    <a href="contratos.php?clear=1" class="btn btn-ghost text-error">Limpar</a>
                 </div>
                 <?php endif; ?>
             </form>
         </div>
     </div>
+
+    <!-- Indicador de Filtros Ativos -->
+    <?php if (!empty($search) || $status !== 'all' || !empty($ano)): ?>
+    <div class="flex flex-wrap items-center gap-2 px-1">
+        <span class="text-xs font-bold uppercase text-base-content/50 mr-2">Filtros Ativos:</span>
+        
+        <?php if (!empty($ano)): ?>
+            <div class="badge badge-primary badge-outline gap-2 py-3 px-4">
+                <i class="ph ph-calendar"></i> Ano: <?php echo $ano; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($search)): ?>
+            <div class="badge badge-primary badge-outline gap-2 py-3 px-4">
+                <i class="ph ph-magnifying-glass"></i> Termo: "<?php echo htmlspecialchars($search); ?>"
+            </div>
+        <?php endif; ?>
+
+        <?php if ($status !== 'all'): ?>
+            <div class="badge badge-primary badge-outline gap-2 py-3 px-4 capitalize">
+                <i class="ph ph-funnel"></i> 
+                <?php 
+                    $status_label = $status;
+                    if ($status === 'active') $status_label = 'Vigentes';
+                    if ($status === 'expired') $status_label = 'Vencidos';
+                    if ($status === 'expiring') $status_label = "A Vencer ({$days}d)";
+                    echo $status_label;
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <a href="contratos.php?clear=1" class="btn btn-ghost btn-xs text-error hover:bg-error/10">
+            <i class="ph ph-x-circle"></i> Remover todos
+        </a>
+    </div>
+    <?php endif; ?>
 
     <?php if (isset($error)): ?>
         <div class="alert alert-error shadow-lg">

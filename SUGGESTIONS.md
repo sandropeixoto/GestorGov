@@ -9,3 +9,18 @@
 - **Destaque Visual**: Colorir linhas da tabela com base na proximidade do vencimento (Heatmap).
 - **Relatórios Rápidos**: Botão para exportar a visualização filtrada atual em PDF/Excel.
 - **Projeção de Médio Prazo**: Incluir indicadores de 60 e 90 dias diretamente no Dashboard.
+
+## [2026-03-06] Navegação e Persistência Avançada
+- **Ordenação Dinâmica**: Permitir ordenação por colunas (Data, Valor, Nome) mantendo o estado dos filtros.
+- **Modo de Exibição Compacto**: Toggle para alternar entre visualização confortável e densa de dados.
+- **Autocomplete de Ano Dinâmico**: Conversão de input para select baseado nos dados existentes (Implementado).
+- **Persistência de Sessão**: Filtros mantidos durante a navegação entre páginas do módulo (Implementado).
+- **Indicadores de Filtro Ativo**: Badges visuais para facilitar o reconhecimento do contexto da lista (Implementado).
+
+  🚀 Sugestões de Melhoria
+
+
+   1. Ordenação Multicolunas: Permitir que o usuário clique no cabeçalho das colunas (ex: "Vencimento" ou "Valor Global") para alternar
+      a ordenação dos resultados, mantendo os filtros ativos.
+   2. Toggle de Visualização: Adicionar um modo "Compacto" na tabela para gestores que preferem visualizar mais registros
+      simultaneamente sem a necessidade de scroll excessivo.
