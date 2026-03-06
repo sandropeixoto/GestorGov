@@ -41,6 +41,11 @@
 - **Gestão de Garantias**: Controle de apólices de seguro e cauções com alertas dedicados.
 - **Checklist de Encerramento**: Validação automática de pendências antes da rescisão definitiva.
 
+## [2026-03-06] Analytics e Business Intelligence (BI)
+- **Filtro Global de BI**: Seletor de ano no Dashboard para recalcular todos os gráficos em tempo real.
+- **Spending por Diretoria**: Gráfico comparativo de alocação de recursos por setor administrativo.
+- **Evolução Mensal**: Gráfico de tendência para visualizar o fluxo de assinaturas e desembolsos por mês.
+
   🚀 Sugestões de Melhoria
 
 

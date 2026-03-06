@@ -46,10 +46,23 @@ try {
     $stmt->execute();
     $recent_contracts = $stmt->fetchAll();
 
+    // Data for Analytics: Spending by Modality
+    $analytics_stmt = $pdo->query("
+        SELECT m.Descricao as label, SUM(c.ValorGlobalContrato) as total 
+        FROM Contratos c 
+        LEFT JOIN Modalidade m ON c.ModalidadeId = m.Id 
+        GROUP BY c.ModalidadeId
+        ORDER BY total DESC
+    ");
+    $analytics_data = $analytics_stmt->fetchAll();
+
 } catch (PDOException $e) {
     $error = "Erro ao buscar dados: " . $e->getMessage();
 }
 ?>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="space-y-8">
     <!-- Welcome Header -->
@@ -121,6 +134,32 @@ try {
 
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Analytics Card -->
+        <div class="card bg-base-100 shadow-xl border border-base-200">
+            <div class="card-body">
+                <h3 class="card-title flex items-center gap-2">
+                    <i class="ph ph-chart-pie-slice text-primary"></i> Gastos por Modalidade
+                </h3>
+                <div class="relative h-[300px] w-full mt-4">
+                    <canvas id="modalityChart"></canvas>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <?php 
+                    $colors = ['#570df8', '#f000b8', '#37cdbe', '#3d4451', '#fbbd23', '#ef4f4f'];
+                    foreach(array_slice($analytics_data, 0, 4) as $index => $item): 
+                    ?>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full" style="background-color: <?php echo $colors[$index % count($colors)]; ?>"></span>
+                                <?php echo htmlspecialchars($item['label'] ?? 'Não Definida'); ?>
+                            </span>
+                            <span class="font-bold">R$ <?php echo number_format($item['total'], 2, ',', '.'); ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Contracts Table -->
         <div class="lg:col-span-2 card bg-base-100 shadow-xl overflow-hidden border border-base-200">
             <div class="p-6 border-b border-base-200 flex justify-between items-center bg-base-100/50">
@@ -226,3 +265,49 @@ try {
 </div>
 
 <?php require_once 'footer.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('modalityChart').getContext('2d');
+    const data = {
+        labels: <?php echo json_encode(array_column($analytics_data, 'label')); ?>,
+        datasets: [{
+            data: <?php echo json_encode(array_column($analytics_data, 'total')); ?>,
+            backgroundColor: ['#570df8', '#f000b8', '#37cdbe', '#3d4451', '#fbbd23', '#ef4f4f'],
+            hoverOffset: 15,
+            borderWidth: 0
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    padding: 12,
+                    boxPadding: 8,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed !== null) {
+                                label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            cutout: '75%',
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        }
+    });
+});
+</script>
