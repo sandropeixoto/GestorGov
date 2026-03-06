@@ -55,9 +55,8 @@ try {
     }
 
     if (!empty($search)) {
-        $sql .= " AND (c.SeqContrato LIKE ? OR c.NumeroContrato LIKE ? OR c.Objeto LIKE ? OR p.Nome LIKE ?)";
+        $sql .= " AND (c.SeqContrato LIKE ? OR c.Objeto LIKE ? OR p.Nome LIKE ?)";
         $searchTerm = "%$search%";
-        $params[] = $searchTerm;
         $params[] = $searchTerm;
         $params[] = $searchTerm;
         $params[] = $searchTerm;

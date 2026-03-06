@@ -17,7 +17,6 @@ try {
             'VigenciaInicio' => $_POST['VigenciaInicio'],
             'VigenciaFim' => $_POST['VigenciaFim'],
             'DataAssinatura' => $_POST['DataAssinatura'],
-            'NumeroContrato' => $_POST['NumeroContrato'] ?: null,
             'SeqContrato' => $_POST['SeqContrato'],
             'AnoContrato' => $_POST['AnoContrato'],
             'PaiId' => $_POST['PaiId'] ?? 0,

@@ -54,7 +54,7 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                 <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
                     <i class="ph ph-info text-primary"></i> Informações Básicas
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Sequencial (ID)</span></label>
                         <input type="number" name="SeqContrato" required class="input input-bordered" 
@@ -65,12 +65,7 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                         <input type="number" name="AnoContrato" required class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['AnoContrato'] ?? date('Y')); ?>">
                     </div>
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Número do Contrato (Opcional)</span></label>
-                        <input type="text" name="NumeroContrato" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['NumeroContrato'] ?? ''); ?>" placeholder="Ex: 045/2024">
-                    </div>
-                    
+                </div>
                     <div class="form-control md:col-span-4">
                         <label class="label"><span class="label-text font-semibold">Contrato Principal (Se for TAC)</span></label>
                         <select name="PaiId" class="select select-bordered w-full">
@@ -156,10 +151,10 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                     <div class="form-control md:col-span-2">
                         <label class="label"><span class="label-text font-semibold">Diretoria Responsável</span></label>
                         <select name="DiretoriaId" class="select select-bordered w-full">
-                            <option value="">Selecione a diretoria...</option>
+                            <option value="">Selecione...</option>
                             <?php foreach($diretorias as $d): ?>
                                 <option value="<?php echo $d['IdDiretoria']; ?>" <?php echo ($contract['DiretoriaId'] ?? '') == $d['IdDiretoria'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($d['SiglaDiretoria'] . ' - ' . $d['NomeDiretoria']); ?>
+                                    <?php echo htmlspecialchars($d['SiglaDiretoria']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
