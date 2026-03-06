@@ -31,6 +31,11 @@
 - **Máscara de Dados**: Padronização visual para campos de Número de Modalidade e Processo.
 - **Analytics de Modalidade**: Gráficos no Dashboard para visualizar a concentração de gastos por tipo de licitação.
 
+## [2026-03-06] Dossiê Digital e Documentação
+- **Gestão de Anexos**: Upload e visualização de PDFs digitalizados (Contratos e Termos).
+- **Timeline de Aditivos**: Linha do tempo visual exibindo a evolução contratual (Valor e Prazo).
+- **Exportação de Dossiê**: Gerador de relatório consolidado em PDF para prestação de contas.
+
   🚀 Sugestões de Melhoria
 
 

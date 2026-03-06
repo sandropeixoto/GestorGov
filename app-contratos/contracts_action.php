@@ -12,6 +12,9 @@ $id = $_POST['id'] ?? null;
 
 try {
     if ($action === 'create' || $action === 'update') {
+        $paiId = $_POST['PaiId'] ?? 0;
+        $tipoDocId = ($paiId == 0) ? 1 : ($_POST['TipoDocumentoId'] ?? 2); // 1 = Contrato, 2 = Termo Aditivo (fallback)
+
         $data = [
             'Objeto' => $_POST['Objeto'],
             'VigenciaInicio' => $_POST['VigenciaInicio'],
@@ -19,7 +22,8 @@ try {
             'DataAssinatura' => $_POST['DataAssinatura'],
             'SeqContrato' => $_POST['SeqContrato'],
             'AnoContrato' => $_POST['AnoContrato'],
-            'PaiId' => $_POST['PaiId'] ?? 0,
+            'PaiId' => $paiId,
+            'TipoDocumentoId' => $tipoDocId,
             'FiscalContrato' => $_POST['FiscalContrato'] ?? null,
             'EmailFiscal' => $_POST['EmailFiscal'] ?? null,
             'FiscalSubstituto' => $_POST['FiscalSubstituto'] ?? null,
@@ -52,13 +56,16 @@ try {
             $stmt->execute($data);
         }
         
-        header("Location: contratos.php?msg=success");
+        $redirect = $_POST['redirect'] ?? "contratos.php?msg=success";
+        header("Location: $redirect");
         exit;
 
     } elseif ($action === 'delete' && $id) {
         $stmt = $pdo->prepare("DELETE FROM Contratos WHERE Id = ?");
         $stmt->execute([$id]);
-        header("Location: contratos.php?msg=deleted");
+        
+        $redirect = $_POST['redirect'] ?? "contratos.php?msg=deleted";
+        header("Location: $redirect");
         exit;
     }
 

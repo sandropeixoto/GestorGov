@@ -35,11 +35,12 @@ try {
     // Buscar anos distintos para o autocomplete
     $available_years = $pdo->query("SELECT DISTINCT AnoContrato FROM Contratos WHERE AnoContrato IS NOT NULL AND AnoContrato > 0 ORDER BY AnoContrato DESC")->fetchAll(PDO::FETCH_COLUMN);
 
-    $sql = "SELECT c.*, p.Nome as PrestadorNome, m.Descricao as ModalidadeNome,
+    $sql = "SELECT c.*, p.Nome as PrestadorNome, m.Descricao as ModalidadeNome, td.Nome as TipoDocumentoNome,
                    GREATEST(c.VigenciaFim, COALESCE(t.MaxTacVigencia, '0000-00-00')) as VigenciaEfetiva
             FROM Contratos c 
             LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
             LEFT JOIN Modalidade m ON c.ModalidadeId = m.Id
+            LEFT JOIN TiposDocumentos td ON c.TipoDocumentoId = td.Id
             LEFT JOIN (
                 SELECT PaiId, MAX(VigenciaFim) as MaxTacVigencia
                 FROM Contratos
@@ -211,7 +212,7 @@ try {
                 </thead>
                 <tbody>
                     <?php foreach($contracts as $c): ?>
-                    <tr class="hover group">
+                    <tr class="hover group cursor-pointer transition-colors" onclick="window.location='contract_view.php?id=<?php echo $c['Id']; ?>'">
                         <td class="text-xs opacity-50"><?php echo $c['Id']; ?></td>
                         <td class="font-bold text-primary">
                             <?php echo $c['SeqContrato'] . '/' . $c['AnoContrato']; ?>
@@ -258,10 +259,10 @@ try {
                         </td>
                         <td>
                             <div class="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <a href="contract_form.php?id=<?php echo $c['Id']; ?>" class="btn btn-square btn-sm btn-ghost text-info" title="Editar">
+                                <a href="contract_form.php?id=<?php echo $c['Id']; ?>" onclick="event.stopPropagation()" class="btn btn-square btn-sm btn-ghost text-info" title="Editar">
                                     <i class="ph ph-pencil-simple text-lg"></i>
                                 </a>
-                                <button onclick="confirmDelete(<?php echo $c['Id']; ?>, '<?php echo $c['SeqContrato'] . '/' . $c['AnoContrato']; ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir">
+                                <button onclick="event.stopPropagation(); confirmDelete(<?php echo $c['Id']; ?>, '<?php echo $c['SeqContrato'] . '/' . $c['AnoContrato']; ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir">
                                     <i class="ph ph-trash text-lg"></i>
                                 </button>
                             </div>

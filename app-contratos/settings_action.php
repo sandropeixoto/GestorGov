@@ -16,7 +16,8 @@ $tables = [
     'diretorias' => ['table' => 'Diretorias', 'pk' => 'IdDiretoria', 'fields' => ['SiglaDiretoria', 'NomeDiretoria']],
     'fontes' => ['table' => 'FontesRecursos', 'pk' => 'IdFonte', 'fields' => ['NomeFonte']],
     'categorias' => ['table' => 'CategoriaContrato', 'pk' => 'Id', 'fields' => ['Codigo', 'Descricao']],
-    'modalidades' => ['table' => 'Modalidade', 'pk' => 'Id', 'fields' => ['Codigo', 'Descricao']]
+    'modalidades' => ['table' => 'Modalidade', 'pk' => 'Id', 'fields' => ['Codigo', 'Descricao']],
+    'tipos_doc' => ['table' => 'TiposDocumentos', 'pk' => 'Id', 'fields' => ['Nome']]
 ];
 
 if (!isset($tables[$tab])) {

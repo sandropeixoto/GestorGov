@@ -41,6 +41,14 @@ $tables = [
             'Codigo' => ['label' => 'Código', 'type' => 'text'],
             'Descricao' => ['label' => 'Descrição', 'type' => 'text']
         ]
+    ],
+    'tipos_doc' => [
+        'title' => 'Tipos de Documentos',
+        'table' => 'TiposDocumentos',
+        'pk' => 'Id',
+        'fields' => [
+            'Nome' => ['label' => 'Nome do Tipo', 'type' => 'text']
+        ]
     ]
 ];
 

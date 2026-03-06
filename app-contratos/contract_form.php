@@ -4,12 +4,18 @@ require_once 'config.php';
 require_once 'header.php';
 
 $id = $_GET['id'] ?? null;
+$parent_id = $_GET['parent_id'] ?? null;
 $contract = null;
 
 if ($id) {
     $stmt = $pdo->prepare("SELECT * FROM Contratos WHERE Id = ?");
     $stmt->execute([$id]);
     $contract = $stmt->fetch();
+}
+
+// Se não houver contrato mas houver parent_id, define o PaiId inicial
+if (!$contract && $parent_id) {
+    $contract = ['PaiId' => $parent_id];
 }
 
 // Fetch Prestadors for dropdown
@@ -26,6 +32,14 @@ $diretorias = $pdo->query("SELECT IdDiretoria, NomeDiretoria, SiglaDiretoria FRO
 
 // Fetch Fontes for dropdown
 $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY NomeFonte ASC")->fetchAll();
+
+// Fetch Document Types
+try {
+    $tipos_documentos = $pdo->query("SELECT Id, Nome FROM TiposDocumentos ORDER BY Id ASC")->fetchAll();
+} catch (PDOException $e) {
+    // Fallback se a tabela ainda não existir
+    $tipos_documentos = [];
+}
 
 // Fetch Main Contracts for PaiId dropdown
 $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM Contratos WHERE PaiId = 0 ORDER BY AnoContrato DESC, SeqContrato DESC")->fetchAll();
@@ -56,7 +70,7 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Sequencial (ID)</span></label>
+                        <label class="label"><span class="label-text font-semibold">Número do Contrato</span></label>
                         <input type="number" name="SeqContrato" required class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['SeqContrato'] ?? ''); ?>" placeholder="Ex: 45">
                     </div>
@@ -67,11 +81,11 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                     </div>
                 </div>
                     <div class="form-control md:col-span-4">
-                        <label class="label"><span class="label-text font-semibold">Contrato Principal (Se for TAC)</span></label>
-                        <select name="PaiId" class="select select-bordered w-full">
+                        <label class="label"><span class="label-text font-semibold">Contrato Principal (Se for um Termo)</span></label>
+                        <select name="PaiId" id="PaiId" class="select select-bordered w-full" onchange="toggleDocType()">
                             <option value="0">Nenhum (Este é um Contrato Principal)</option>
                             <?php foreach($main_contracts as $mc): ?>
-                                <?php if ($mc['Id'] != $id): // Don't allow self-parenting ?>
+                                <?php if ($mc['Id'] != $id): ?>
                                 <option value="<?php echo $mc['Id']; ?>" <?php echo ($contract['PaiId'] ?? 0) == $mc['Id'] ? 'selected' : ''; ?>>
                                     Contrato <?php echo $mc['SeqContrato'] . '/' . $mc['AnoContrato']; ?> - <?php echo substr(htmlspecialchars($mc['Objeto']), 0, 80); ?>...
                                 </option>
@@ -80,6 +94,32 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                         </select>
                     </div>
 
+                    <div class="form-control md:col-span-4 <?php echo ($contract['PaiId'] ?? 0) > 0 ? '' : 'hidden'; ?>" id="doctype_container">
+                        <label class="label"><span class="label-text font-semibold text-primary">Tipo do Termo</span></label>
+                        <select name="TipoDocumentoId" id="TipoDocumentoId" class="select select-bordered select-primary w-full">
+                            <?php foreach($tipos_documentos as $td): ?>
+                                <?php if ($td['Id'] > 1): ?>
+                                    <option value="<?php echo $td['Id']; ?>" <?php echo ($contract['TipoDocumentoId'] ?? '') == $td['Id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($td['Nome']); ?>
+                                    </option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <script>
+                    function toggleDocType() {
+                        const paiId = document.getElementById('PaiId').value;
+                        const docTypeContainer = document.getElementById('doctype_container');
+                        if (paiId > 0) {
+                            docTypeContainer.classList.remove('hidden');
+                        } else {
+                            docTypeContainer.classList.add('hidden');
+                        }
+                    }
+                    // Executa no carregamento caso venha com PaiId pré-selecionado
+                    window.onload = toggleDocType;
+                    </script>
                     <div class="form-control md:col-span-4">
                         <label class="label"><span class="label-text font-semibold">Objeto</span></label>
                         <textarea name="Objeto" required class="textarea textarea-bordered h-24" 
