@@ -30,6 +30,7 @@ try {
             'ValorGlobalContrato' => $_POST['ValorGlobalContrato'],
             'NProcesso' => $_POST['NProcesso'] ?? null,
             'ModalidadeId' => $_POST['ModalidadeId'] ?: null,
+            'NumeroModalidade' => $_POST['NumeroModalidade'] ?? null,
             'DiretoriaId' => $_POST['DiretoriaId'] ?: null,
             'CategoriaContratoId' => $_POST['CategoriaContratoId'] ?: null,
             'FonteRecursosId' => $_POST['FonteRecursosId'] ?: null

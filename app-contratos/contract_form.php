@@ -231,6 +231,11 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Número da Modalidade</span></label>
+                        <input type="text" name="NumeroModalidade" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['NumeroModalidade'] ?? ''); ?>" placeholder="Ex: 002/2021">
+                    </div>
                 </div>
             </section>
         </div>

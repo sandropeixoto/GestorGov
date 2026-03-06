@@ -27,6 +27,10 @@
 - **Drawer Mobile Funcional**: Implementar o comportamento de abertura/fechamento do menu em dispositivos móveis.
 - **Busca Global**: Um atalho de pesquisa no Header para localizar rapidamente um contrato por número em qualquer tela.
 
+## [2026-03-06] Melhorias em Processos Licitatórios
+- **Máscara de Dados**: Padronização visual para campos de Número de Modalidade e Processo.
+- **Analytics de Modalidade**: Gráficos no Dashboard para visualizar a concentração de gastos por tipo de licitação.
+
   🚀 Sugestões de Melhoria
 
 

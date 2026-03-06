@@ -34,11 +34,12 @@ if (isset($_GET['clear'])) {
 try {
     // Buscar anos distintos para o autocomplete
     $available_years = $pdo->query("SELECT DISTINCT AnoContrato FROM Contratos WHERE AnoContrato IS NOT NULL AND AnoContrato > 0 ORDER BY AnoContrato DESC")->fetchAll(PDO::FETCH_COLUMN);
-
-    $sql = "SELECT c.*, p.Nome as PrestadorNome,
+try {
+    $sql = "SELECT c.*, p.Nome as PrestadorNome, m.Descricao as ModalidadeNome,
                    GREATEST(c.VigenciaFim, COALESCE(t.MaxTacVigencia, '0000-00-00')) as VigenciaEfetiva
             FROM Contratos c 
             LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
+            LEFT JOIN Modalidade m ON c.ModalidadeId = m.Id
             LEFT JOIN (
                 SELECT PaiId, MAX(VigenciaFim) as MaxTacVigencia
                 FROM Contratos
@@ -221,9 +222,14 @@ try {
                         </td>
                         <td class="text-sm">
                             <div class="font-medium"><?php echo htmlspecialchars($c['PrestadorNome'] ?? 'N/A'); ?></div>
-                            <?php if (!empty($c['NProcesso'])): ?>
-                                <div class="text-[10px] opacity-50">Proc: <?php echo $c['NProcesso']; ?></div>
-                            <?php endif; ?>
+                            <div class="text-[10px] flex flex-col gap-1 mt-1 opacity-70">
+                                <?php if (!empty($c['ModalidadeNome'])): ?>
+                                    <span class="flex items-center gap-1"><i class="ph ph-tag"></i> <?php echo htmlspecialchars($c['ModalidadeNome']); ?> (<?php echo htmlspecialchars($c['NumeroModalidade'] ?? 'S/N'); ?>)</span>
+                                <?php endif; ?>
+                                <?php if (!empty($c['NProcesso'])): ?>
+                                    <span class="flex items-center gap-1"><i class="ph ph-stack"></i> Proc: <?php echo $c['NProcesso']; ?></span>
+                                <?php endif; ?>
+                            </div>
                         </td>
                         <td class="text-xs whitespace-nowrap">
                             <div class="flex flex-col">
