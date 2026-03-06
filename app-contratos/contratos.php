@@ -34,7 +34,7 @@ if (isset($_GET['clear'])) {
 try {
     // Buscar anos distintos para o autocomplete
     $available_years = $pdo->query("SELECT DISTINCT AnoContrato FROM Contratos WHERE AnoContrato IS NOT NULL AND AnoContrato > 0 ORDER BY AnoContrato DESC")->fetchAll(PDO::FETCH_COLUMN);
-try {
+
     $sql = "SELECT c.*, p.Nome as PrestadorNome, m.Descricao as ModalidadeNome,
                    GREATEST(c.VigenciaFim, COALESCE(t.MaxTacVigencia, '0000-00-00')) as VigenciaEfetiva
             FROM Contratos c 
