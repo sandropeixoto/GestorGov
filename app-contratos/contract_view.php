@@ -33,15 +33,22 @@ try {
     }
 
     // Busca Termos Vinculados (Aditivos, Apostilamentos, etc)
-    $stmt_terms = $pdo->prepare("
-        SELECT c.*, td.Nome as TipoNome
-        FROM Contratos c
-        LEFT JOIN TiposDocumentos td ON c.TipoDocumentoId = td.Id
-        WHERE c.PaiId = ?
-        ORDER BY c.DataAssinatura ASC, c.Id ASC
-    ");
-    $stmt_terms->execute([$id]);
-    $terms = $stmt_terms->fetchAll();
+    try {
+        $stmt_terms = $pdo->prepare("
+            SELECT c.*, COALESCE(td.Nome, 'Termo (Antigo)') as TipoNome
+            FROM Contratos c
+            LEFT JOIN TiposDocumentos td ON c.TipoDocumentoId = td.Id
+            WHERE c.PaiId = ?
+            ORDER BY c.DataAssinatura ASC, c.Id ASC
+        ");
+        $stmt_terms->execute([$id]);
+        $terms = $stmt_terms->fetchAll();
+    } catch (PDOException $e) {
+        // Fallback caso a tabela TiposDocumentos ainda não tenha sido criada
+        $stmt_terms = $pdo->prepare("SELECT *, 'Termo' as TipoNome FROM Contratos WHERE PaiId = ? ORDER BY Id ASC");
+        $stmt_terms->execute([$id]);
+        $terms = $stmt_terms->fetchAll();
+    }
 
     // Cálculo do Valor Total (Contrato + Aditivos)
     $total_value = $contract['ValorGlobalContrato'];
