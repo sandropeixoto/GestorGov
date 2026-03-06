@@ -11,18 +11,38 @@ try {
     // Total global value (including TACs)
     $total_value = $pdo->query("SELECT SUM(ValorGlobalContrato) FROM Contratos")->fetchColumn();
     
-    // Active contracts (only main ones)
-    $active_contracts = $pdo->query("SELECT COUNT(*) FROM Contratos WHERE VigenciaFim >= CURDATE() AND PaiId = 0")->fetchColumn();
+    // Active contracts (considering TACs)
+    // A contract is active if its own expiration OR any of its TACs expiration is >= CURDATE()
+    $active_contracts = $pdo->query("
+        SELECT COUNT(DISTINCT c.Id) 
+        FROM Contratos c 
+        LEFT JOIN Contratos t ON t.PaiId = c.Id
+        WHERE c.PaiId = 0 
+        AND (c.VigenciaFim >= CURDATE() OR t.VigenciaFim >= CURDATE())
+    ")->fetchColumn();
     
-    // Expiring in 30 days (only main ones)
-    $expiring_soon = $pdo->query("SELECT COUNT(*) FROM Contratos WHERE VigenciaFim <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND VigenciaFim >= CURDATE() AND PaiId = 0")->fetchColumn();
+    // Expiring in 30 days (considering effective expiration)
+    $expiring_soon = $pdo->query("
+        SELECT COUNT(*) FROM (
+            SELECT c.Id, GREATEST(c.VigenciaFim, COALESCE(MAX(t.VigenciaFim), '0000-00-00')) as VigenciaEfetiva
+            FROM Contratos c
+            LEFT JOIN Contratos t ON t.PaiId = c.Id
+            WHERE c.PaiId = 0
+            GROUP BY c.Id
+        ) as V
+        WHERE V.VigenciaEfetiva <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) 
+        AND V.VigenciaEfetiva >= CURDATE()
+    ")->fetchColumn();
     
     // Recent contracts (only main ones)
-    $stmt = $pdo->prepare("SELECT c.*, p.Nome as PrestadorNome 
-                           FROM Contratos c 
-                           LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
-                           WHERE c.PaiId = 0
-                           ORDER BY c.Id DESC LIMIT 5");
+    $stmt = $pdo->prepare("
+        SELECT c.*, p.Nome as PrestadorNome,
+               GREATEST(c.VigenciaFim, COALESCE((SELECT MAX(VigenciaFim) FROM Contratos WHERE PaiId = c.Id), '0000-00-00')) as VigenciaEfetiva
+        FROM Contratos c 
+        LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
+        WHERE c.PaiId = 0
+        ORDER BY c.Id DESC LIMIT 5
+    ");
     $stmt->execute();
     $recent_contracts = $stmt->fetchAll();
 
@@ -134,7 +154,7 @@ try {
                             </td>
                             <td>
                                 <?php 
-                                    $vencimento = new DateTime($c['VigenciaFim']);
+                                    $vencimento = new DateTime($c['VigenciaEfetiva']);
                                     $hoje = new DateTime();
                                     $diff = $hoje->diff($vencimento);
                                     $is_expired = ($vencimento < $hoje);

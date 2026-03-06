@@ -7,9 +7,16 @@ $search = $_GET['search'] ?? '';
 $status = $_GET['status'] ?? 'all';
 
 try {
-    $sql = "SELECT c.*, p.Nome as PrestadorNome 
+    $sql = "SELECT c.*, p.Nome as PrestadorNome,
+                   GREATEST(c.VigenciaFim, COALESCE(t.MaxTacVigencia, '0000-00-00')) as VigenciaEfetiva
             FROM Contratos c 
             LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
+            LEFT JOIN (
+                SELECT PaiId, MAX(VigenciaFim) as MaxTacVigencia
+                FROM Contratos
+                WHERE PaiId > 0
+                GROUP BY PaiId
+            ) t ON c.Id = t.PaiId
             WHERE c.PaiId = 0";
     $params = [];
 
@@ -23,9 +30,9 @@ try {
     }
 
     if ($status === 'active') {
-        $sql .= " AND c.VigenciaFim >= CURDATE()";
+        $sql .= " HAVING VigenciaEfetiva >= CURDATE()";
     } elseif ($status === 'expired') {
-        $sql .= " AND c.VigenciaFim < CURDATE()";
+        $sql .= " HAVING VigenciaEfetiva < CURDATE()";
     }
 
     $sql .= " ORDER BY c.Id DESC";
@@ -125,12 +132,12 @@ try {
                         <td class="text-xs whitespace-nowrap">
                             <div class="flex flex-col">
                                 <span>Ini: <?php echo date('d/m/Y', strtotime($c['VigenciaInicio'])); ?></span>
-                                <span>Fim: <?php echo date('d/m/Y', strtotime($c['VigenciaFim'])); ?></span>
+                                <span class="font-bold text-primary">Fim: <?php echo date('d/m/Y', strtotime($c['VigenciaEfetiva'])); ?></span>
                             </div>
                         </td>
                         <td>
                             <?php 
-                                $vencimento = new DateTime($c['VigenciaFim']);
+                                $vencimento = new DateTime($c['VigenciaEfetiva']);
                                 $hoje = new DateTime();
                                 $diff = $hoje->diff($vencimento);
                                 $is_expired = ($vencimento < $hoje);
