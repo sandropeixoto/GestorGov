@@ -5,6 +5,7 @@ require_once 'header.php';
 
 $search = $_GET['search'] ?? '';
 $status = $_GET['status'] ?? 'all';
+$days = $_GET['days'] ?? '';
 
 try {
     $sql = "SELECT c.*, p.Nome as PrestadorNome,
@@ -29,10 +30,14 @@ try {
         $params[] = $searchTerm;
     }
 
+    // Lógica de Status e Vencimento
     if ($status === 'active') {
         $sql .= " HAVING VigenciaEfetiva >= CURDATE()";
     } elseif ($status === 'expired') {
         $sql .= " HAVING VigenciaEfetiva < CURDATE()";
+    } elseif ($status === 'expiring' && !empty($days)) {
+        $sql .= " HAVING VigenciaEfetiva <= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND VigenciaEfetiva >= CURDATE()";
+        $params[] = intval($days);
     }
 
     $sql .= " ORDER BY c.Id DESC";
@@ -74,14 +79,32 @@ try {
                 
                 <div class="form-control w-full md:w-48">
                     <label class="label"><span class="label-text font-semibold">Status</span></label>
-                    <select name="status" class="select select-bordered w-full" onchange="this.form.submit()">
+                    <select name="status" class="select select-bordered w-full" onchange="if(this.value != 'expiring') { this.form.days.value=''; } this.form.submit()">
                         <option value="all" <?php echo $status === 'all' ? 'selected' : ''; ?>>Todos</option>
                         <option value="active" <?php echo $status === 'active' ? 'selected' : ''; ?>>Vigentes</option>
                         <option value="expired" <?php echo $status === 'expired' ? 'selected' : ''; ?>>Vencidos</option>
+                        <option value="expiring" <?php echo $status === 'expiring' ? 'selected' : ''; ?>>A Vencer (Dias)</option>
                     </select>
                 </div>
 
-                <?php if (!empty($search) || $status !== 'all'): ?>
+                <div class="form-control <?php echo $status === 'expiring' ? '' : 'hidden'; ?>" id="days_container">
+                    <label class="label"><span class="label-text font-semibold">Dias</span></label>
+                    <input type="number" name="days" value="<?php echo htmlspecialchars($days); ?>" 
+                           class="input input-bordered w-24" onchange="this.form.submit()" placeholder="Ex: 30">
+                </div>
+
+                <div class="flex gap-2 mb-2 md:mb-0">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Atalhos</span></label>
+                        <div class="flex gap-2">
+                            <a href="contratos.php?status=expiring&days=30" class="btn btn-sm <?php echo ($status==='expiring' && $days==='30') ? 'btn-primary' : 'btn-outline'; ?>">30d</a>
+                            <a href="contratos.php?status=expiring&days=60" class="btn btn-sm <?php echo ($status==='expiring' && $days==='60') ? 'btn-primary' : 'btn-outline'; ?>">60d</a>
+                            <a href="contratos.php?status=expiring&days=90" class="btn btn-sm <?php echo ($status==='expiring' && $days==='90') ? 'btn-primary' : 'btn-outline'; ?>">90d</a>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if (!empty($search) || $status !== 'all' || !empty($days)): ?>
                 <div class="form-control">
                     <a href="contratos.php" class="btn btn-ghost">Limpar</a>
                 </div>

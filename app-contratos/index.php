@@ -107,7 +107,7 @@ try {
             </div>
         </div>
 
-        <div class="stats shadow-xl bg-base-100 overflow-hidden group">
+        <a href="contratos.php?status=expiring&days=30" class="stats shadow-xl bg-base-100 overflow-hidden group hover:bg-base-200 transition-colors cursor-pointer">
             <div class="stat relative">
                 <div class="stat-figure text-warning opacity-20 absolute -right-4 -bottom-4 transition-transform group-hover:scale-110">
                     <i class="ph ph-clock-countdown text-8xl"></i>
@@ -116,7 +116,7 @@ try {
                 <div class="stat-value text-warning"><?php echo number_format($expiring_soon, 0, ',', '.'); ?></div>
                 <div class="stat-desc font-medium text-warning font-bold italic">Atenção requerida</div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Main Content Grid -->
