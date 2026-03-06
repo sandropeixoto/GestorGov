@@ -51,12 +51,12 @@ if (session_status() === PHP_SESSION_NONE) {
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="hover:bg-primary-focus p-3 rounded-lg flex items-center gap-3 opacity-50 cursor-not-allowed">
-                        <i class="ph ph-users text-xl"></i> Fornecedores
+                    <a href="prestadores.php" class="hover:bg-primary-focus p-3 rounded-lg flex items-center gap-3">
+                        <i class="ph ph-buildings text-xl"></i> Fornecedores
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="hover:bg-primary-focus p-3 rounded-lg flex items-center gap-3 opacity-50 cursor-not-allowed">
+                    <a href="settings.php" class="hover:bg-primary-focus p-3 rounded-lg flex items-center gap-3">
                         <i class="ph ph-gear text-xl"></i> Configurações
                     </a>
                 </li>

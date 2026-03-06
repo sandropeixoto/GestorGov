@@ -22,6 +22,11 @@
 - **Dossiê do Fornecedor**: Visualização consolidada de todos os contratos e aditivos de um prestador específico.
 - **Integridade Referencial**: Soft-delete para tabelas auxiliares para evitar quebra de histórico em contratos antigos.
 
+## [2026-03-06] UX de Navegação e Responsividade
+- **Indicador de Página Ativa**: Destaque visual no menu lateral para a página que o usuário está acessando no momento.
+- **Drawer Mobile Funcional**: Implementar o comportamento de abertura/fechamento do menu em dispositivos móveis.
+- **Busca Global**: Um atalho de pesquisa no Header para localizar rapidamente um contrato por número em qualquer tela.
+
   🚀 Sugestões de Melhoria
 
 
