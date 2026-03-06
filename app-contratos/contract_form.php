@@ -20,6 +20,9 @@ $categories = $pdo->query("SELECT Id, Descricao FROM CategoriaContrato ORDER BY 
 
 // Fetch Modalidades for dropdown
 $modalidades = $pdo->query("SELECT Id, Descricao FROM Modalidade ORDER BY Descricao ASC")->fetchAll();
+
+// Fetch Main Contracts for PaiId dropdown
+$main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM Contratos WHERE PaiId = 0 ORDER BY AnoContrato DESC, SeqContrato DESC")->fetchAll();
 ?>
 
 <div class="max-w-4xl mx-auto space-y-6">
@@ -45,18 +48,38 @@ $modalidades = $pdo->query("SELECT Id, Descricao FROM Modalidade ORDER BY Descri
                 <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
                     <i class="ph ph-info text-primary"></i> Informações Básicas
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Número do Contrato</span></label>
-                        <input type="text" name="NumeroContrato" required class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['NumeroContrato'] ?? ''); ?>" placeholder="Ex: 045/2024">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Sequencial (ID)</span></label>
+                        <input type="number" name="SeqContrato" required class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['SeqContrato'] ?? ''); ?>" placeholder="Ex: 45">
                     </div>
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Ano</span></label>
                         <input type="number" name="AnoContrato" required class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['AnoContrato'] ?? date('Y')); ?>">
                     </div>
-                    <div class="form-control md:col-span-3">
+                    <div class="form-control md:col-span-2">
+                        <label class="label"><span class="label-text font-semibold">Número do Contrato (Opcional)</span></label>
+                        <input type="text" name="NumeroContrato" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['NumeroContrato'] ?? ''); ?>" placeholder="Ex: 045/2024">
+                    </div>
+                    
+                    <div class="form-control md:col-span-4">
+                        <label class="label"><span class="label-text font-semibold">Contrato Principal (Se for TAC)</span></label>
+                        <select name="PaiId" class="select select-bordered w-full">
+                            <option value="0">Nenhum (Este é um Contrato Principal)</option>
+                            <?php foreach($main_contracts as $mc): ?>
+                                <?php if ($mc['Id'] != $id): // Don't allow self-parenting ?>
+                                <option value="<?php echo $mc['Id']; ?>" <?php echo ($contract['PaiId'] ?? 0) == $mc['Id'] ? 'selected' : ''; ?>>
+                                    Contrato <?php echo $mc['SeqContrato'] . '/' . $mc['AnoContrato']; ?> - <?php echo substr(htmlspecialchars($mc['Objeto']), 0, 80); ?>...
+                                </option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-control md:col-span-4">
                         <label class="label"><span class="label-text font-semibold">Objeto</span></label>
                         <textarea name="Objeto" required class="textarea textarea-bordered h-24" 
                                   placeholder="Descrição detalhada do contrato..."><?php echo htmlspecialchars($contract['Objeto'] ?? ''); ?></textarea>

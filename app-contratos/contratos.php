@@ -10,12 +10,13 @@ try {
     $sql = "SELECT c.*, p.Nome as PrestadorNome 
             FROM Contratos c 
             LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
-            WHERE 1=1";
+            WHERE c.PaiId = 0";
     $params = [];
 
     if (!empty($search)) {
-        $sql .= " AND (c.NumeroContrato LIKE ? OR c.Objeto LIKE ? OR p.Nome LIKE ?)";
+        $sql .= " AND (c.SeqContrato LIKE ? OR c.NumeroContrato LIKE ? OR c.Objeto LIKE ? OR p.Nome LIKE ?)";
         $searchTerm = "%$search%";
+        $params[] = $searchTerm;
         $params[] = $searchTerm;
         $params[] = $searchTerm;
         $params[] = $searchTerm;
@@ -110,7 +111,7 @@ try {
                     <tr class="hover group">
                         <td class="text-xs opacity-50"><?php echo $c['Id']; ?></td>
                         <td class="font-bold text-primary">
-                            <?php echo $c['NumeroContrato'] . '/' . $c['AnoContrato']; ?>
+                            <?php echo $c['SeqContrato'] . '/' . $c['AnoContrato']; ?>
                         </td>
                         <td class="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title="<?php echo htmlspecialchars($c['Objeto']); ?>">
                             <?php echo htmlspecialchars($c['Objeto']); ?>
@@ -152,7 +153,7 @@ try {
                                 <a href="contract_form.php?id=<?php echo $c['Id']; ?>" class="btn btn-square btn-sm btn-ghost text-info" title="Editar">
                                     <i class="ph ph-pencil-simple text-lg"></i>
                                 </a>
-                                <button onclick="confirmDelete(<?php echo $c['Id']; ?>, '<?php echo $c['NumeroContrato']; ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir">
+                                <button onclick="confirmDelete(<?php echo $c['Id']; ?>, '<?php echo $c['SeqContrato'] . '/' . $c['AnoContrato']; ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir">
                                     <i class="ph ph-trash text-lg"></i>
                                 </button>
                             </div>

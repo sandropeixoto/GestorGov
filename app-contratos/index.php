@@ -5,22 +5,23 @@ require_once 'header.php';
 
 // Fetch metrics
 try {
-    // Total contracts
-    $total_contracts = $pdo->query("SELECT COUNT(*) FROM Contratos")->fetchColumn();
+    // Total contracts (only main ones)
+    $total_contracts = $pdo->query("SELECT COUNT(*) FROM Contratos WHERE PaiId = 0")->fetchColumn();
     
-    // Total global value
+    // Total global value (including TACs)
     $total_value = $pdo->query("SELECT SUM(ValorGlobalContrato) FROM Contratos")->fetchColumn();
     
-    // Active contracts
-    $active_contracts = $pdo->query("SELECT COUNT(*) FROM Contratos WHERE VigenciaFim >= CURDATE()")->fetchColumn();
+    // Active contracts (only main ones)
+    $active_contracts = $pdo->query("SELECT COUNT(*) FROM Contratos WHERE VigenciaFim >= CURDATE() AND PaiId = 0")->fetchColumn();
     
-    // Expiring in 30 days
-    $expiring_soon = $pdo->query("SELECT COUNT(*) FROM Contratos WHERE VigenciaFim <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND VigenciaFim >= CURDATE()")->fetchColumn();
+    // Expiring in 30 days (only main ones)
+    $expiring_soon = $pdo->query("SELECT COUNT(*) FROM Contratos WHERE VigenciaFim <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND VigenciaFim >= CURDATE() AND PaiId = 0")->fetchColumn();
     
-    // Recent contracts
+    // Recent contracts (only main ones)
     $stmt = $pdo->prepare("SELECT c.*, p.Nome as PrestadorNome 
                            FROM Contratos c 
                            LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
+                           WHERE c.PaiId = 0
                            ORDER BY c.Id DESC LIMIT 5");
     $stmt->execute();
     $recent_contracts = $stmt->fetchAll();
@@ -123,7 +124,7 @@ try {
                         <?php foreach($recent_contracts as $c): ?>
                         <tr class="hover">
                             <td class="font-bold text-primary">
-                                <?php echo $c['NumeroContrato'] . '/' . $c['AnoContrato']; ?>
+                                <?php echo $c['SeqContrato'] . '/' . $c['AnoContrato']; ?>
                             </td>
                             <td class="max-w-xs truncate" title="<?php echo htmlspecialchars($c['Objeto']); ?>">
                                 <?php echo htmlspecialchars($c['Objeto']); ?>
