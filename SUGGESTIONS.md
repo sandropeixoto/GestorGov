@@ -36,6 +36,11 @@
 - **Timeline de Aditivos**: Linha do tempo visual exibindo a evolução contratual (Valor e Prazo).
 - **Exportação de Dossiê**: Gerador de relatório consolidado em PDF para prestação de contas.
 
+## [2026-03-06] Inteligência e Compliance
+- **Calculadora de Reajustes**: Simulação de reequilíbrio financeiro baseado em índices (IPCA/IGPM).
+- **Gestão de Garantias**: Controle de apólices de seguro e cauções com alertas dedicados.
+- **Checklist de Encerramento**: Validação automática de pendências antes da rescisão definitiva.
+
   🚀 Sugestões de Melhoria
 
 
