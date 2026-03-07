@@ -25,8 +25,10 @@
 ## [2026-03-06] UX de Navegação e Responsividade
 - **Indicador de Página Ativa**: Destaque visual no menu lateral para a página que o usuário está acessando no momento (Implementado).
 - **Drawer Mobile Funcional**: Implementar o comportamento de abertura/fechamento do menu em dispositivos móveis (Implementado).
-- **Sidebar Colapsável**: Opção para minimizar o menu lateral em desktop para focar no conteúdo.
-- **Dark Mode Global**: Suporte a tema escuro em toda a interface do sistema.
+- **Sidebar Colapsável**: Opção para minimizar o menu lateral em desktop para focar no conteúdo (Implementado).
+- **Layout Flexbox Estável**: Correção de quebra de layout em modo fullscreen (Implementado).
+- **Busca Global (Quick Search)**: Modal de pesquisa rápida acessível por atalho de teclado (Ctrl+K).
+- **Breadcrumbs Contextuais**: Navegação dinâmica que reflete o documento sendo visualizado no dossiê.
 
 ## [2026-03-06] Melhorias em Processos Licitatórios
 - **Máscara de Dados**: Padronização visual para campos de Número de Modalidade e Processo.
