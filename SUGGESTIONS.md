@@ -23,9 +23,10 @@
 - **Integridade Referencial**: Soft-delete para tabelas auxiliares para evitar quebra de histórico em contratos antigos.
 
 ## [2026-03-06] UX de Navegação e Responsividade
-- **Indicador de Página Ativa**: Destaque visual no menu lateral para a página que o usuário está acessando no momento.
-- **Drawer Mobile Funcional**: Implementar o comportamento de abertura/fechamento do menu em dispositivos móveis.
-- **Busca Global**: Um atalho de pesquisa no Header para localizar rapidamente um contrato por número em qualquer tela.
+- **Indicador de Página Ativa**: Destaque visual no menu lateral para a página que o usuário está acessando no momento (Implementado).
+- **Drawer Mobile Funcional**: Implementar o comportamento de abertura/fechamento do menu em dispositivos móveis (Implementado).
+- **Sidebar Colapsável**: Opção para minimizar o menu lateral em desktop para focar no conteúdo.
+- **Dark Mode Global**: Suporte a tema escuro em toda a interface do sistema.
 
 ## [2026-03-06] Melhorias em Processos Licitatórios
 - **Máscara de Dados**: Padronização visual para campos de Número de Modalidade e Processo.
