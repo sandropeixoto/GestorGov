@@ -50,18 +50,15 @@ require_once 'auth_check.php';
                 </a>
 
                 <!-- Seção de Usuários -->
-                <div class="card bg-white shadow-xl border border-base-200 group hover:border-primary transition-all">
+                <a href="manage_users.php" class="card bg-white shadow-xl border border-base-200 group hover:border-primary transition-all cursor-pointer">
                     <div class="card-body">
                         <div class="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-4">
                             <i class="ph ph-users-three text-2xl"></i>
                         </div>
                         <h3 class="card-title text-slate-800">Gestão de Usuários</h3>
-                        <p class="text-sm text-slate-500">Controle quem tem acesso aos módulos e seus níveis de permissão.</p>
-                        <div class="card-actions justify-end mt-4">
-                            <button class="btn btn-sm btn-ghost text-primary">Configurar <i class="ph ph-arrow-right"></i></button>
-                        </div>
+                        <p class="text-[10px] text-slate-500">Controle quem tem acesso aos módulos e seus níveis de permissão.</p>
                     </div>
-                </div>
+                </a>
 
                 <!-- Seção de Logs -->
                 <div class="card bg-white shadow-xl border border-base-200 group hover:border-secondary transition-all">

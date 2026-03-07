@@ -43,8 +43,10 @@
 - **RBAC (Role-Based Access Control)**: Sistema de permissões granuladas para cada módulo do Launcher.
 - **Central de Auditoria**: Registro unificado de logs de acesso e modificações para conformidade.
 - **Notificações Globais**: Banner administrativo no topo do Launcher para comunicados gerais a todos os usuários.
-- ** Launcher Dinâmico**: Gestão completa de módulos, ícones e ordens via interface administrativa (Implementado).
+- **Launcher Dinâmico**: Gestão completa de módulos, ícones e ordens via interface administrativa (Implementado).
 - **Protocolo SSO**: Token de passagem para autenticação única entre sistemas internos e externos (Implementado).
+- **Gestão de Usuários**: Controle de acesso passwordless restrito a e-mails cadastrados (Implementado).
+- **Last Seen**: Rastreamento de data e hora do último acesso por usuário.
 
 ## [2026-03-06] Dossiê Digital e Documentação
 - **Gestão de Anexos**: Upload e visualização de PDFs digitalizados (Contratos e Termos).

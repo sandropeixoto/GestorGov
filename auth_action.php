@@ -16,7 +16,17 @@ if (empty($prefix)) {
 }
 
 $email = $prefix . '@sefa.pa.gov.br';
-$token = bin2hex(random_bytes(32));
+
+try {
+    // Verifica se o usuário está cadastrado e ativo
+    $stmt_user = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? AND status = 1");
+    $stmt_user->execute([$email]);
+    if (!$stmt_user->fetch()) {
+        echo json_encode(['success' => false, 'error' => 'Acesso negado. E-mail não cadastrado ou inativo.']);
+        exit;
+    }
+
+    $token = bin2hex(random_bytes(32));
 $expires_at = date('Y-m-d H:i:s', strtotime('+30 days'));
 
 try {
