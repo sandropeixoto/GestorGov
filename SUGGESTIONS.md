@@ -46,6 +46,10 @@
 - **Spending por Diretoria**: Gráfico comparativo de alocação de recursos por setor administrativo.
 - **Evolução Mensal**: Gráfico de tendência para visualizar o fluxo de assinaturas e desembolsos por mês.
 
+## [2026-03-06] Refinamento de Interface de Termos
+- **Sinalização de Supressão**: Destaque visual (cor vermelha) para termos que subtraiam valor do contrato global.
+- **Timeline Cronológica**: Agrupadores visuais por ano na listagem de termos vinculados para contratos de longa duração.
+
   🚀 Sugestões de Melhoria
 
 

@@ -167,7 +167,7 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                         <thead>
                             <tr class="bg-base-200/50">
                                 <th>Tipo</th>
-                                <th>Nº/Ano</th>
+                                <th>Nº</th>
                                 <th>Data Assinatura</th>
                                 <th>Nova Vigência</th>
                                 <th class="text-right">Valor</th>
@@ -178,7 +178,7 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                             <?php foreach ($terms as $t): ?>
                                 <tr class="hover group">
                                     <td><span class="badge badge-outline badge-sm uppercase font-bold text-[10px]"><?php echo htmlspecialchars($t['TipoNome']); ?></span></td>
-                                    <td class="font-bold"><?php echo $t['SeqContrato'] . '/' . $t['AnoContrato']; ?></td>
+                                    <td class="font-bold"><?php echo $t['SeqContrato']; ?></td>
                                     <td><?php echo date('d/m/Y', strtotime($t['DataAssinatura'])); ?></td>
                                     <td class="text-primary font-medium"><?php echo date('d/m/Y', strtotime($t['VigenciaFim'])); ?></td>
                                     <td class="text-right font-semibold">R$ <?php echo number_format($t['ValorGlobalContrato'], 2, ',', '.'); ?></td>
