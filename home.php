@@ -73,9 +73,12 @@ function getModuleUrl($m, $pdo) {
                                 <i class="ph <?php echo $m['icon']; ?> text-4xl"></i>
                             </div>
                             <h3 class="text-xl font-bold text-slate-800 mb-2"><?php echo htmlspecialchars($m['title']); ?></h3>
-                            <p class="text-slate-500 text-xs mb-6"><?php echo htmlspecialchars($m['description']); ?></p>
-                            <div class="btn btn-primary btn-sm btn-wide rounded-xl gap-2 shadow-lg group-hover:gap-4 transition-all">
-                                Acessar <i class="ph ph-arrow-right"></i>
+                            <p class="text-slate-500 text-xs mb-8"><?php echo htmlspecialchars($m['description']); ?></p>
+                            
+                            <div class="mt-auto w-full flex justify-center">
+                                <div class="btn btn-primary btn-sm btn-wide rounded-xl gap-2 shadow-lg group-hover:gap-4 transition-all text-white border-none">
+                                    Acessar <i class="ph ph-arrow-right"></i>
+                                </div>
                             </div>
                         </a>
                     <?php else: ?>
