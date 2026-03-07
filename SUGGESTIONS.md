@@ -39,6 +39,11 @@
 - **Branding de E-mail**: Template HTML personalizado com identidade visual governamental.
 - **Gestão de Sessões**: Painel para o usuário invalidar tokens ativos em outros navegadores.
 
+## [2026-03-06] Ecossistema e Administração Global
+- **RBAC (Role-Based Access Control)**: Sistema de permissões granuladas para cada módulo do Launcher.
+- **Central de Auditoria**: Registro unificado de logs de acesso e modificações para conformidade.
+- **Notificações Globais**: Banner administrativo no topo do Launcher para comunicados gerais a todos os usuários.
+
 ## [2026-03-06] Dossiê Digital e Documentação
 - **Gestão de Anexos**: Upload e visualização de PDFs digitalizados (Contratos e Termos).
 - **Timeline de Aditivos**: Linha do tempo visual exibindo a evolução contratual (Valor e Prazo).
