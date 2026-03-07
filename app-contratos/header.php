@@ -5,8 +5,7 @@ require_once __DIR__ . '/../auth_check.php';
 // Controle de estado da Sidebar
 if (isset($_GET['toggle_sidebar'])) {
     $_SESSION['sidebar_collapsed'] = !($_SESSION['sidebar_collapsed'] ?? false);
-    $redirect = strtok($_SERVER['REQUEST_URI'], '?');
-    header("Location: $redirect");
+    header("Location: " . basename($_SERVER['PHP_SELF']));
     exit;
 }
 
@@ -81,9 +80,10 @@ function isActive($page, $current_page) {
                 <label for="mobile-drawer" class="btn btn-square btn-ghost lg:hidden">
                     <i class="ph ph-list text-2xl text-base-content"></i>
                 </label>
-                
+                <!-- Breadcrumbs -->
                 <div class="text-sm breadcrumbs hidden sm:block text-base-content/60 font-medium">
                     <ul>
+                        <li><a href="../home.php" class="hover:text-primary transition-colors italic opacity-70">Painel Geral</a></li> 
                         <li><a href="index.php" class="hover:text-primary transition-colors">Início</a></li> 
                         <li>Módulo de Contratos</li>
                     </ul>

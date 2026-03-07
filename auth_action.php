@@ -25,7 +25,11 @@ try {
     $stmt->execute([$email, $token, $expires_at]);
 
     // Prepara e-mail
-    $link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]/verify.php?token=$token";
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+    $host = $_SERVER['HTTP_HOST'];
+    $path = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+    $link = "$protocol://$host$path/verify.php?token=$token";
+    
     $assunto = "Link de Acesso - GestorGov";
     $mensagem = "
         <div style='font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 40px;'>

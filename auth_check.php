@@ -24,15 +24,15 @@ if (!isset($_SESSION['user_email'])) {
                 $_SESSION['user_email'] = $user['email'];
             } else {
                 setcookie('gestorgov_session', '', time() - 3600, "/");
-                header("Location: /index.php?error=expired");
+                header("Location: index.php?error=expired");
                 exit;
             }
         } catch (PDOException $e) {
-            header("Location: /index.php?error=db");
+            header("Location: index.php?error=db");
             exit;
         }
     } else {
-        header("Location: /index.php?error=unauthorized");
+        header("Location: index.php?error=unauthorized");
         exit;
     }
 }
