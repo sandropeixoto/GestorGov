@@ -1,6 +1,32 @@
 <?php
 // home.php na raiz
 require_once 'auth_check.php';
+require_once 'config.php';
+
+try {
+    $modules = $pdo->query("SELECT * FROM launcher_modules ORDER BY display_order ASC")->fetchAll();
+} catch (PDOException $e) {
+    $modules = [];
+}
+
+// Função para gerar URL com token SSO se necessário
+function getModuleUrl($m, $pdo) {
+    if (!$m['is_external']) return $m['url'];
+    
+    // Gera token temporário (válido por 1 minuto para o handoff)
+    $token = bin2hex(random_bytes(16));
+    $expires = date('Y-m-d H:i:s', strtotime('+1 minute'));
+    
+    try {
+        $stmt = $pdo->prepare("INSERT INTO login_tokens (email, token, expires_at) VALUES (?, ?, ?)");
+        $stmt->execute([$_SESSION['user_email'], $token, $expires]);
+        
+        $sep = (strpos($m['url'], '?') === false) ? '?' : '&';
+        return $m['url'] . $sep . "sso_token=" . $token;
+    } catch (Exception $e) {
+        return $m['url'];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="corporate">
@@ -38,61 +64,32 @@ require_once 'auth_check.php';
 
             <!-- Launcher Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto pb-12">
-                <!-- Módulo de Contratos -->
-                <a href="app-contratos/index.php" class="group relative bg-white p-8 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col items-center text-center hover:-translate-y-2 overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="w-20 h-20 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                        <i class="ph ph-file-text text-4xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-2">Módulo de Contratos</h3>
-                    <p class="text-slate-500 text-xs mb-6">Gestão de vigências, aditivos, fornecedores e métricas financeiras.</p>
-                    <div class="btn btn-primary btn-sm btn-wide rounded-xl gap-2 shadow-lg group-hover:gap-4 transition-all">
-                        Acessar <i class="ph ph-arrow-right"></i>
-                    </div>
-                </a>
-
-                <!-- Módulo de Configurações Gerais -->
-                <a href="admin_settings.php" class="group relative bg-white p-8 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col items-center text-center hover:-translate-y-2 overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="w-20 h-20 bg-secondary/10 text-secondary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                        <i class="ph ph-gear text-4xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-2">Configurações Gerais</h3>
-                    <p class="text-slate-500 text-xs mb-6">Gerenciamento de usuários, permissões e parâmetros globais do sistema.</p>
-                    <div class="btn btn-secondary btn-sm btn-wide rounded-xl gap-2 shadow-lg group-hover:gap-4 transition-all text-white">
-                        Gerenciar <i class="ph ph-sliders"></i>
-                    </div>
-                </a>
-
-                <!-- Placeholder: PCA -->
-                <div class="group relative bg-slate-50 p-8 rounded-[2rem] border border-dashed border-slate-200 flex flex-col items-center text-center opacity-60 grayscale blur-[1px] hover:blur-0 transition-all duration-500">
-                    <div class="w-20 h-20 bg-slate-200 text-slate-400 rounded-2xl flex items-center justify-center mb-6 text-4xl">
-                        <i class="ph ph-chart-bar"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-400 mb-2 text-slate-800">PCA</h3>
-                    <p class="text-slate-400 text-xs mb-6 text-slate-500">Plano de Contratações Anual e alocação orçamentária.</p>
-                    <div class="btn btn-disabled btn-sm btn-wide rounded-xl">Em breve</div>
-                </div>
-
-                <!-- Placeholder: Gestão de Viagens -->
-                <div class="group relative bg-slate-50 p-8 rounded-[2rem] border border-dashed border-slate-200 flex flex-col items-center text-center opacity-60 grayscale blur-[1px] hover:blur-0 transition-all duration-500">
-                    <div class="w-20 h-20 bg-slate-200 text-slate-400 rounded-2xl flex items-center justify-center mb-6 text-4xl">
-                        <i class="ph ph-airplane-tilt"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-400 mb-2 text-slate-800">Gestão de Viagens</h3>
-                    <p class="text-slate-400 text-xs mb-6 text-slate-500">Controle de diárias, passagens e solicitações de deslocamento.</p>
-                    <div class="btn btn-disabled btn-sm btn-wide rounded-xl">Em breve</div>
-                </div>
-
-                <!-- Placeholder: Gestão de Estagiários -->
-                <div class="group relative bg-slate-50 p-8 rounded-[2rem] border border-dashed border-slate-200 flex flex-col items-center text-center opacity-60 grayscale blur-[1px] hover:blur-0 transition-all duration-500">
-                    <div class="w-20 h-20 bg-slate-200 text-slate-400 rounded-2xl flex items-center justify-center mb-6 text-4xl">
-                        <i class="ph ph-student"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-400 mb-2 text-slate-800">Estagiários</h3>
-                    <p class="text-slate-400 text-xs mb-6 text-slate-500">Monitoramento de contratos de estágio e frequências.</p>
-                    <div class="btn btn-disabled btn-sm btn-wide rounded-xl">Em breve</div>
-                </div>
+                <?php foreach ($modules as $m): ?>
+                    <?php if ($m['is_active']): ?>
+                        <!-- Módulo Ativo -->
+                        <a href="<?php echo getModuleUrl($m, $pdo); ?>" class="group relative bg-white p-8 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col items-center text-center hover:-translate-y-2 overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div class="w-20 h-20 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                                <i class="ph <?php echo $m['icon']; ?> text-4xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-2"><?php echo htmlspecialchars($m['title']); ?></h3>
+                            <p class="text-slate-500 text-xs mb-6"><?php echo htmlspecialchars($m['description']); ?></p>
+                            <div class="btn btn-primary btn-sm btn-wide rounded-xl gap-2 shadow-lg group-hover:gap-4 transition-all">
+                                Acessar <i class="ph ph-arrow-right"></i>
+                            </div>
+                        </a>
+                    <?php else: ?>
+                        <!-- Módulo Em Breve -->
+                        <div class="group relative bg-slate-50 p-8 rounded-[2rem] border border-dashed border-slate-200 flex flex-col items-center text-center opacity-60 grayscale blur-[1px] hover:blur-0 transition-all duration-500">
+                            <div class="w-20 h-20 bg-slate-200 text-slate-400 rounded-2xl flex items-center justify-center mb-6 text-4xl">
+                                <i class="ph <?php echo $m['icon']; ?>"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-400 mb-2 text-slate-800"><?php echo htmlspecialchars($m['title']); ?></h3>
+                            <p class="text-slate-400 text-xs mb-6 text-slate-500"><?php echo htmlspecialchars($m['description']); ?></p>
+                            <div class="btn btn-disabled btn-sm btn-wide rounded-xl">Em breve</div>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             </div>
         </div>
     </main>

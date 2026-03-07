@@ -1,0 +1,51 @@
+<?php
+// launcher_action.php na raiz
+require_once 'config.php';
+require_once 'auth_check.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: manage_launcher.php");
+    exit;
+}
+
+$action = $_POST['action'] ?? '';
+$id = $_POST['id'] ?? null;
+
+try {
+    if ($action === 'create' || $action === 'update') {
+        $data = [
+            'title' => $_POST['title'],
+            'description' => $_POST['description'],
+            'icon' => $_POST['icon'] ?? 'ph-cube',
+            'url' => $_POST['url'],
+            'display_order' => $_POST['display_order'] ?? 0,
+            'is_active' => $_POST['is_active'] ?? 1,
+            'is_external' => isset($_POST['is_external']) ? 1 : 0
+        ];
+
+        if ($action === 'create') {
+            $cols = implode(", ", array_keys($data));
+            $placeholders = ":" . implode(", :", array_keys($data));
+            $stmt = $pdo->prepare("INSERT INTO launcher_modules ($cols) VALUES ($placeholders)");
+            $stmt->execute($data);
+        } else {
+            $sets = [];
+            foreach ($data as $key => $val) {
+                $sets[] = "$key = :$key";
+            }
+            $stmt = $pdo->prepare("UPDATE launcher_modules SET " . implode(", ", $sets) . " WHERE id = :id");
+            $data['id'] = $id;
+            $stmt->execute($data);
+        }
+    } elseif ($action === 'delete' && $id) {
+        $stmt = $pdo->prepare("DELETE FROM launcher_modules WHERE id = ?");
+        $stmt->execute([$id]);
+    }
+
+    header("Location: manage_launcher.php?msg=success");
+    exit;
+
+} catch (PDOException $e) {
+    die("Erro ao processar módulo: " . $e->getMessage());
+}
+?>

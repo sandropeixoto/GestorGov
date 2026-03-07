@@ -37,7 +37,18 @@ require_once 'auth_check.php';
 
     <main class="flex-1 p-8">
         <div class="max-w-6xl mx-auto space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Gestão do Launcher -->
+                <a href="manage_launcher.php" class="card bg-white shadow-xl border border-base-200 group hover:border-primary transition-all cursor-pointer">
+                    <div class="card-body">
+                        <div class="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-4">
+                            <i class="ph ph-squares-four text-2xl"></i>
+                        </div>
+                        <h3 class="card-title text-slate-800">Menu Launcher</h3>
+                        <p class="text-[10px] text-slate-500">Gerencie os módulos ativos, ícones e ordens de exibição no portal.</p>
+                    </div>
+                </a>
+
                 <!-- Seção de Usuários -->
                 <div class="card bg-white shadow-xl border border-base-200 group hover:border-primary transition-all">
                     <div class="card-body">
