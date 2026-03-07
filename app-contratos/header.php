@@ -4,6 +4,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Controle de estado da Sidebar (Colapsada ou não)
+if (isset($_GET['toggle_sidebar'])) {
+    $_SESSION['sidebar_collapsed'] = !($_SESSION['sidebar_collapsed'] ?? false);
+    $redirect = strtok($_SERVER['REQUEST_URI'], '?');
+    header("Location: $redirect");
+    exit;
+}
+
+$is_collapsed = $_SESSION['sidebar_collapsed'] ?? false;
+$sidebar_width = $is_collapsed ? 'lg:w-20' : 'lg:w-72';
+$logo_display = $is_collapsed ? 'hidden' : 'block';
+$menu_text_display = $is_collapsed ? 'hidden' : 'block';
+
 // Lógica para marcar link ativo
 $current_page = basename($_SERVER['PHP_SELF']);
 function isActive($page, $current_page) {
@@ -25,28 +38,32 @@ function isActive($page, $current_page) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
         .glass-panel {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
-        /* Custom scrollbar para o menu */
-        .drawer-side::-webkit-scrollbar { width: 5px; }
-        .drawer-side::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-transition { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .menu-item-center { justify-content: center; padding-left: 0; padding-right: 0; }
     </style>
 </head>
-<body class="bg-base-200 min-h-screen">
+<body class="bg-base-200 min-h-screen flex overflow-hidden text-base-content">
 
-    <div class="drawer lg:drawer-open">
+    <div class="drawer lg:drawer-open flex-1">
         <input id="main-drawer" type="checkbox" class="drawer-toggle" />
         
         <!-- Conteúdo Principal -->
-        <div class="drawer-content flex flex-col min-h-screen overflow-hidden">
+        <div class="drawer-content flex flex-col h-screen overflow-hidden w-full">
             
             <!-- Topbar -->
-            <header class="h-16 flex items-center justify-between px-4 md:px-8 z-20 glass-panel sticky top-0">
+            <header class="h-16 flex items-center justify-between px-4 md:px-8 z-20 glass-panel shrink-0">
                 <div class="flex items-center gap-4">
+                    <!-- Botão Toggle Sidebar (Desktop) -->
+                    <a href="?toggle_sidebar=1" class="btn btn-square btn-ghost hidden lg:flex">
+                        <i class="ph <?php echo $is_collapsed ? 'ph-caret-double-right' : 'ph-caret-double-left'; ?> text-xl"></i>
+                    </a>
+
                     <!-- Botão Mobile -->
                     <label for="main-drawer" class="btn btn-square btn-ghost lg:hidden">
                         <i class="ph ph-list text-2xl"></i>
@@ -72,8 +89,8 @@ function isActive($page, $current_page) {
                         </div>
                         <ul tabindex="0" class="mt-3 z-[30] p-2 shadow-2xl menu menu-sm dropdown-content bg-base-100 rounded-xl w-64 border border-base-200">
                             <li class="menu-title font-bold text-xs uppercase opacity-50 px-4 py-2">Alertas Recentes</li>
-                            <li><a class="py-3">3 Contratos Vencendo (30d)</a></li>
-                            <li><a class="py-3">Backup concluído</a></li>
+                            <li><a class="py-3 px-4">3 Contratos Vencendo (30d)</a></li>
+                            <li><a class="py-3 px-4">Backup concluído</a></li>
                         </ul>
                     </div>
 
@@ -88,77 +105,82 @@ function isActive($page, $current_page) {
                             <i class="ph ph-caret-down text-xs opacity-50 hidden md:block"></i>
                         </div>
                         <ul tabindex="0" class="mt-3 z-[30] p-2 shadow-2xl menu menu-sm dropdown-content bg-base-100 rounded-xl w-52 border border-base-200">
-                            <li><a class="py-3"><i class="ph ph-user"></i> Meu Perfil</a></li>
-                            <li><a class="py-3"><i class="ph ph-gear"></i> Preferências</a></li>
+                            <li><a class="py-3 px-4"><i class="ph ph-user"></i> Meu Perfil</a></li>
+                            <li><a class="py-3 px-4"><i class="ph ph-gear"></i> Preferências</a></li>
                             <div class="divider my-1"></div>
-                            <li><a class="py-3 text-error"><i class="ph ph-sign-out"></i> Sair do Sistema</a></li>
+                            <li><a class="py-3 px-4 text-error"><i class="ph ph-sign-out"></i> Sair</a></li>
                         </ul>
                     </div>
                 </div>
             </header>
 
-            <!-- Viewport de Conteúdo -->
-            <main class="flex-1 overflow-auto p-4 md:p-8 bg-gradient-to-br from-base-200 to-base-300/50">
-...
+            <!-- Viewport de Conteúdo (Área de Trabalho) -->
+            <main class="flex-1 overflow-auto p-4 md:p-8 bg-gradient-to-br from-base-200 to-base-300/50 relative">
+<?php
+// O restante do conteúdo da página será injetado aqui pelo arquivo que chama o header
+?>
         </div> 
 
-        <!-- Sidebar (Drawer Side) -->
+        <!-- Sidebar Side (Drawer Side) -->
         <div class="drawer-side z-40">
             <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-            <aside class="w-72 min-h-full bg-[#0f172a] text-white flex flex-col shadow-2xl">
+            <aside class="<?php echo $sidebar_width; ?> min-h-full bg-[#0f172a] text-white flex flex-col shadow-2xl sidebar-transition overflow-hidden">
                 <!-- Logo Area -->
-                <div class="px-8 py-10 border-b border-white/10">
-                    <h1 class="text-2xl font-black tracking-tighter flex items-center gap-3">
-                        <i class="ph-fill ph-files text-primary text-4xl"></i> 
-                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">GestorGov</span>
-                    </h1>
-                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-40 mt-2">Módulo de Contratos v2.0</p>
+                <div class="px-6 py-8 border-b border-white/5 shrink-0 h-24 flex items-center <?php echo $is_collapsed ? 'justify-center' : 'justify-start'; ?>">
+                    <div class="flex items-center gap-3">
+                        <i class="ph-fill ph-files text-primary <?php echo $is_collapsed ? 'text-3xl' : 'text-4xl'; ?>"></i> 
+                        <h1 class="text-2xl font-black tracking-tighter <?php echo $logo_display; ?>">
+                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">GestorGov</span>
+                        </h1>
+                    </div>
                 </div>
                 
                 <!-- Menu Principal -->
-                <nav class="p-4 flex-1 mt-4">
+                <nav class="flex-1 mt-4 overflow-y-auto overflow-x-hidden p-3 text-white">
                     <ul class="menu menu-md w-full gap-1 p-0">
-                        <li class="menu-title text-white/30 text-[10px] uppercase font-bold tracking-widest px-4 mb-2">Principal</li>
+                        <li class="menu-title text-white/20 text-[10px] uppercase font-bold tracking-widest px-4 mb-2 <?php echo $logo_display; ?>">Principal</li>
+                        
                         <li>
-                            <a href="index.php" class="p-4 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('index.php', $current_page); ?>">
-                                <i class="ph ph-squares-four text-2xl"></i> 
-                                <span class="tracking-tight">Dashboard</span>
+                            <a href="index.php" class="p-3 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('index.php', $current_page); ?> <?php echo $is_collapsed ? 'justify-center tooltip tooltip-right' : ''; ?>" <?php echo $is_collapsed ? 'data-tip="Dashboard"' : ''; ?>>
+                                <i class="ph ph-squares-four text-2xl shrink-0"></i> 
+                                <span class="tracking-tight whitespace-nowrap <?php echo $menu_text_display; ?>">Dashboard</span>
                             </a>
                         </li>
                         <li>
-                            <a href="contratos.php" class="p-4 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('contratos.php', $current_page); ?>">
-                                <i class="ph ph-folder-open text-2xl"></i> 
-                                <span class="tracking-tight">Contratos</span>
+                            <a href="contratos.php" class="p-3 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('contratos.php', $current_page); ?> <?php echo $is_collapsed ? 'justify-center tooltip tooltip-right' : ''; ?>" <?php echo $is_collapsed ? 'data-tip="Contratos"' : ''; ?>>
+                                <i class="ph ph-folder-open text-2xl shrink-0"></i> 
+                                <span class="tracking-tight whitespace-nowrap <?php echo $menu_text_display; ?>">Contratos</span>
                             </a>
                         </li>
                         
-                        <li class="menu-title text-white/30 text-[10px] uppercase font-bold tracking-widest px-4 mt-6 mb-2">Administração</li>
+                        <li class="menu-title text-white/20 text-[10px] uppercase font-bold tracking-widest px-4 mt-6 mb-2 <?php echo $logo_display; ?>">Administração</li>
+                        
                         <li>
-                            <a href="prestadores.php" class="p-4 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('prestadores.php', $current_page); ?>">
-                                <i class="ph ph-buildings text-2xl"></i> 
-                                <span class="tracking-tight">Fornecedores</span>
+                            <a href="prestadores.php" class="p-3 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('prestadores.php', $current_page); ?> <?php echo $is_collapsed ? 'justify-center tooltip tooltip-right' : ''; ?>" <?php echo $is_collapsed ? 'data-tip="Fornecedores"' : ''; ?>>
+                                <i class="ph ph-buildings text-2xl shrink-0"></i> 
+                                <span class="tracking-tight whitespace-nowrap <?php echo $menu_text_display; ?>">Fornecedores</span>
                             </a>
                         </li>
                         <li>
-                            <a href="settings.php" class="p-4 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('settings.php', $current_page); ?>">
-                                <i class="ph ph-gear text-2xl"></i> 
-                                <span class="tracking-tight">Configurações</span>
+                            <a href="settings.php" class="p-3 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('settings.php', $current_page); ?> <?php echo $is_collapsed ? 'justify-center tooltip tooltip-right' : ''; ?>" <?php echo $is_collapsed ? 'data-tip="Configurações"' : ''; ?>>
+                                <i class="ph ph-gear text-2xl shrink-0"></i> 
+                                <span class="tracking-tight whitespace-nowrap <?php echo $menu_text_display; ?>">Configurações</span>
                             </a>
                         </li>
                     </ul>
                 </nav>
                 
                 <!-- User Footer -->
-                <div class="p-6 border-t border-white/5 bg-black/20">
-                    <div class="flex items-center gap-4">
-                        <div class="avatar online">
-                            <div class="w-10 rounded-xl ring ring-primary ring-offset-base-100 ring-offset-2">
+                <div class="p-4 border-t border-white/5 bg-black/20 shrink-0">
+                    <div class="flex items-center gap-3 <?php echo $is_collapsed ? 'justify-center' : ''; ?>">
+                        <div class="avatar online shadow-lg">
+                            <div class="w-10 rounded-xl ring ring-primary ring-offset-base-100 ring-offset-1">
                                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sandro" />
                             </div>
                         </div>
-                        <div class="overflow-hidden">
-                            <p class="font-bold text-sm truncate">Sandro Peixoto</p>
-                            <p class="text-[10px] uppercase font-black opacity-40">Admin Nível 1</p>
+                        <div class="overflow-hidden <?php echo $logo_display; ?>">
+                            <p class="font-bold text-xs truncate">Sandro Peixoto</p>
+                            <p class="text-[9px] uppercase font-black opacity-30">Administrador</p>
                         </div>
                     </div>
                 </div>
