@@ -1,8 +1,6 @@
 <?php
 // app-contratos/header.php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../auth_check.php';
 
 // Controle de estado da Sidebar
 if (isset($_GET['toggle_sidebar'])) {

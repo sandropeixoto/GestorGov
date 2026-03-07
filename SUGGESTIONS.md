@@ -32,7 +32,12 @@
 
 ## [2026-03-06] Melhorias em Processos Licitatórios
 - **Máscara de Dados**: Padronização visual para campos de Número de Modalidade e Processo.
-- **Analytics de Modalidade**: Gráficos no Dashboard para visualizar a concentração de gastos por tipo de licitação.
+- **Analytics de Modalidade**: Gráficos no Dashboard para visualizar a concentração de gastos por tipo de licitação (Implementado).
+
+## [2026-03-06] Segurança e Autenticação (Passwordless)
+- **Rate Limiting**: Bloqueio temporário de solicitações repetitivas de e-mail para evitar spam.
+- **Branding de E-mail**: Template HTML personalizado com identidade visual governamental.
+- **Gestão de Sessões**: Painel para o usuário invalidar tokens ativos em outros navegadores.
 
 ## [2026-03-06] Dossiê Digital e Documentação
 - **Gestão de Anexos**: Upload e visualização de PDFs digitalizados (Contratos e Termos).
