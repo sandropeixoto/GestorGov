@@ -18,20 +18,14 @@ if (empty($prefix)) {
 $email = $prefix . '@sefa.pa.gov.br';
 
 try {
-    // Verifica se o usuário está cadastrado e ativo
-    $stmt_user = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? AND status = 1");
-    $stmt_user->execute([$email]);
-    if (!$stmt_user->fetch()) {
-        echo json_encode(['success' => false, 'error' => 'Acesso negado. E-mail não cadastrado ou inativo.']);
-        exit;
-    }
-
+    // Agora permitimos qualquer e-mail da SEFA. 
+    // Apenas verificamos se o e-mail segue o padrão (já garantido pelo sufixo)
+    
     $token = bin2hex(random_bytes(32));
-    $expires_at = date('Y-m-d H:i:s', strtotime('+30 days'));
 
-    // Salva token no banco
-    $stmt = $pdo->prepare("INSERT INTO login_tokens (email, token, expires_at) VALUES (?, ?, ?)");
-    $stmt->execute([$email, $token, $expires_at]);
+    // Salva token no banco usando NOW() do banco para evitar conflito de timezone
+    $stmt = $pdo->prepare("INSERT INTO login_tokens (email, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))");
+    $stmt->execute([$email, $token]);
 
     // Prepara e-mail
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");

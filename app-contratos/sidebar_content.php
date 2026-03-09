@@ -33,6 +33,7 @@ $item_justify = $is_collapsed ? 'justify-center' : 'justify-start';
             </a>
         </li>
         
+        <?php if (in_array($_SESSION['user_level'] ?? '', ['Administrador', 'Gestor'])): ?>
         <li class="menu-title text-white/20 text-[10px] uppercase font-bold tracking-widest px-4 mt-6 mb-2 <?php echo $text_class; ?>">Administração</li>
         
         <li>
@@ -47,6 +48,7 @@ $item_justify = $is_collapsed ? 'justify-center' : 'justify-start';
                 <span class="tracking-tight whitespace-nowrap <?php echo $text_class; ?>">Configurações</span>
             </a>
         </li>
+        <?php endif; ?>
     </ul>
 </nav>
 
@@ -55,12 +57,12 @@ $item_justify = $is_collapsed ? 'justify-center' : 'justify-start';
     <div class="flex items-center gap-3 <?php echo $item_justify; ?>">
         <div class="avatar online shadow-lg shrink-0">
             <div class="w-10 rounded-xl ring ring-primary ring-offset-base-100 ring-offset-1">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sandro" />
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=<?php echo urlencode($_SESSION['user_name'] ?? 'User'); ?>" />
             </div>
         </div>
         <div class="overflow-hidden <?php echo $text_class; ?>">
-            <p class="font-bold text-xs truncate">Sandro Peixoto</p>
-            <p class="text-[9px] uppercase font-black opacity-30">Administrador</p>
+            <p class="font-bold text-xs truncate"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Usuário'); ?></p>
+            <p class="text-[9px] uppercase font-black opacity-30"><?php echo htmlspecialchars($_SESSION['user_level'] ?? 'Consultor'); ?></p>
         </div>
     </div>
 </div>
