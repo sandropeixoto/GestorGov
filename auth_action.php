@@ -27,9 +27,8 @@ try {
     }
 
     $token = bin2hex(random_bytes(32));
-$expires_at = date('Y-m-d H:i:s', strtotime('+30 days'));
+    $expires_at = date('Y-m-d H:i:s', strtotime('+30 days'));
 
-try {
     // Salva token no banco
     $stmt = $pdo->prepare("INSERT INTO login_tokens (email, token, expires_at) VALUES (?, ?, ?)");
     $stmt->execute([$email, $token, $expires_at]);
@@ -62,7 +61,9 @@ try {
     }
 
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'error' => 'Erro de banco de dados']);
+    echo json_encode(['success' => false, 'error' => 'Erro de banco de dados: ' . $e->getMessage()]);
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'error' => 'Erro inesperado: ' . $e->getMessage()]);
 }
 
 /**
