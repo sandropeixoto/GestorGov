@@ -87,7 +87,7 @@ try {
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="stats shadow-xl bg-base-100 overflow-hidden group">
+        <a href="contratos.php?status=all" class="stats shadow-xl bg-base-100 overflow-hidden group hover:bg-base-200 transition-colors cursor-pointer">
             <div class="stat relative">
                 <div class="stat-figure text-primary opacity-20 absolute -right-4 -bottom-4 transition-transform group-hover:scale-110">
                     <i class="ph ph-files text-8xl"></i>
@@ -96,7 +96,7 @@ try {
                 <div class="stat-value text-primary"><?php echo number_format($total_contracts, 0, ',', '.'); ?></div>
                 <div class="stat-desc font-medium">Registrados no sistema</div>
             </div>
-        </div>
+        </a>
         
         <div class="stats shadow-xl bg-base-100 overflow-hidden group">
             <div class="stat relative">
@@ -109,7 +109,7 @@ try {
             </div>
         </div>
 
-        <div class="stats shadow-xl bg-base-100 overflow-hidden group">
+        <a href="contratos.php?status=active" class="stats shadow-xl bg-base-100 overflow-hidden group hover:bg-base-200 transition-colors cursor-pointer">
             <div class="stat relative">
                 <div class="stat-figure text-success opacity-20 absolute -right-4 -bottom-4 transition-transform group-hover:scale-110">
                     <i class="ph ph-check-circle text-8xl"></i>
@@ -118,7 +118,7 @@ try {
                 <div class="stat-value text-success"><?php echo number_format($active_contracts, 0, ',', '.'); ?></div>
                 <div class="stat-desc font-medium">Ativos no momento</div>
             </div>
-        </div>
+        </a>
 
         <a href="contratos.php?status=expiring&days=30" class="stats shadow-xl bg-base-100 overflow-hidden group hover:bg-base-200 transition-colors cursor-pointer">
             <div class="stat relative">
