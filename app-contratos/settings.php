@@ -1,3 +1,4 @@
+<?php
 // app-contratos/settings.php
 require_once 'config.php';
 require_once 'header.php';
@@ -259,6 +260,7 @@ try {
             </div>
         </div>
     </div>
+<?php endif; ?>
 </div>
 
 <!-- Delete Confirmation Modal -->
@@ -280,6 +282,7 @@ try {
   </div>
 </dialog>
 
+<?php if ($tab !== 'permissoes'): ?>
 <script>
 function editRow(data) {
     document.getElementById('form-title').innerText = 'Editar <?php echo rtrim($current['title'], 's'); ?>';
@@ -309,5 +312,6 @@ function confirmDelete(id) {
     delete_modal.showModal();
 }
 </script>
+<?php endif; ?>
 
 <?php require_once 'footer.php'; ?>
