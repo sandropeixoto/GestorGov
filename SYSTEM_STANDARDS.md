@@ -1,28 +1,26 @@
-# 🛠️ Padrões Técnicos do Sistema GestorGov
+# 🛠️ Padrões Técnicos do Sistema
 
-## Arquitetura de Software
-- **Linguagem**: PHP 8.2+
-- **Database**: MySQL 8.0+ utilizando o driver PDO.
-- **Frontend**: 
-    - CSS: TailwindCSS 3.4+
-    - UI: DaisyUI 4.7+
-    - Gráficos: Chart.js 4.4+
-    - Ícones: Phosphor Icons 2.1+
+## 1. Backend (PHP 8.x)
+- **Prepared Statements**: SEMPRE utilizar `PDO::prepare` e `execute` para evitar SQL Injection.
+- **Segurança de Acesso**: Todo arquivo de ação (`_action.php`) deve carregar `auth_check.php` e `auth_module.php` e validar as permissões (`CONTRATOS_GESTOR`, `CONTRATOS_CONSULTOR`).
+- **Gestão de Erros**: Utilizar blocos `try-catch` em todas as operações de banco de dados e exibir erros de forma segura (sem vazar credenciais).
 
-## Convenções de Código
-- **Arquivos**: Nomeação em snake_case (ex: `contract_view.php`).
-- **Segurança**:
-    - Sanitização de inputs globais.
-    - XSS Prevention: Uso de `htmlspecialchars()` em todos os echos de dados do usuário.
-    - SQLi Prevention: 100% de uso de Prepared Statements.
-- **Persistence**: Filtros de tabelas persistidos em `$_SESSION['contratos_filters']`.
+## 2. Frontend (Tailwind + DaisyUI)
+- **Tema**: `corporate`.
+- **Botões**:
+    - Primário: `btn-primary`.
+    - Perigo: `btn-error`.
+    - Fantasma: `btn-ghost`.
+- **Inputs**: `input input-bordered w-full`.
+- **Modais**: Utilizar a tag `<dialog class="modal">` com controle via JavaScript (`modal.showModal()`).
+- **Icons**: Importados via CDN do Phosphor Icons.
 
-## Workflow de Contratos
-1. **Cadastro**: Novo contrato (ID 1).
-2. **Aditavação**: Criar novo registro vinculando `PaiId` e definindo `TipoDocumentoId` (2, 3, 4...).
-3. **Consulta**: Listagem utiliza `HAVING` para filtrar pela `VigenciaEfetiva` calculada em tempo real via SQL Aggregation.
+## 3. SQL e Banco de Dados
+- **Relacionamentos**: Utilizar `ON DELETE CASCADE` para garantir integridade (ex: permissões de usuário excluídas com o usuário).
+- **Tipagem**: IDs como `INT AUTO_INCREMENT`, chaves de configuração como `VARCHAR`.
+- **Engine**: `InnoDB` para suporte a transações e chaves estrangeiras.
 
-## Layout e UX
-- **Sidebar**: Toggle via GET param `?toggle_sidebar=1` que inverte booleano na sessão.
-- **Responsividade**: Mobile-first approach com breakpoints do Tailwind (`md:`, `lg:`).
-- **Navigation**: Breadcrumbs dinâmicos e persistência de retorno ao estado anterior da lista.
+## 4. UI/UX (Consistência)
+- **Feedback Visual**: Exibir parâmetros de filtros ativos em badges (`contratos.php`).
+- **Estados de Sidebar**: Sincronizar classes CSS com a variável `$_SESSION['sidebar_collapsed']`.
+- **Mobile First**: Garantir que o drawer lateral funcione corretamente em telas menores.
