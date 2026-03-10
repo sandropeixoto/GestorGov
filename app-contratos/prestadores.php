@@ -3,6 +3,12 @@
 require_once 'config.php';
 require_once 'header.php';
 
+// Bloqueio de leitura
+if (!CONTRATOS_LEITOR) {
+    echo "<script>window.location.href='index.php';</script>";
+    exit;
+}
+
 $search = $_GET['search'] ?? '';
 $id = $_GET['id'] ?? null;
 $prestador = null;
@@ -37,13 +43,16 @@ try {
             <h2 class="text-3xl font-bold text-base-content">Gestão de Fornecedores</h2>
             <p class="text-base-content/60">Cadastre e gerencie os prestadores de serviço e fornecedores.</p>
         </div>
+        <?php if (CONTRATOS_ADMIN): ?>
         <a href="settings.php" class="btn btn-ghost gap-2">
             <i class="ph ph-gear"></i> Configurações
         </a>
+        <?php endif; ?>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Form Column -->
+        <?php if (CONTRATOS_CONSULTOR): ?>
         <div class="card bg-base-100 shadow-xl border border-base-200 h-fit">
             <div class="card-body">
                 <h3 class="card-title mb-4"><?php echo $id ? 'Editar Fornecedor' : 'Novo Fornecedor'; ?></h3>
@@ -96,9 +105,10 @@ try {
                 </form>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Table Column -->
-        <div class="lg:col-span-2 space-y-4">
+        <div class="<?php echo CONTRATOS_CONSULTOR ? 'lg:col-span-2' : 'lg:col-span-3'; ?> space-y-4">
             <div class="card bg-base-100 shadow-md border border-base-200">
                 <div class="card-body p-4">
                     <form method="GET" class="join w-full">
@@ -133,12 +143,21 @@ try {
                                     </td>
                                     <td class="text-right">
                                         <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <a href="?id=<?php echo $p['Id']; ?>" class="btn btn-square btn-sm btn-ghost text-info">
+                                            <?php if (CONTRATOS_CONSULTOR): ?>
+                                            <a href="?id=<?php echo $p['Id']; ?>" class="btn btn-square btn-sm btn-ghost text-info" title="Editar">
                                                 <i class="ph ph-pencil-simple text-lg"></i>
                                             </a>
-                                            <button onclick="confirmDelete(<?php echo $p['Id']; ?>, '<?php echo htmlspecialchars($p['Nome']); ?>')" class="btn btn-square btn-sm btn-ghost text-error">
+                                            <?php endif; ?>
+
+                                            <?php if (CONTRATOS_GESTOR): ?>
+                                            <button onclick="confirmDelete(<?php echo $p['Id']; ?>, '<?php echo htmlspecialchars($p['Nome']); ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir">
                                                 <i class="ph ph-trash text-lg"></i>
                                             </button>
+                                            <?php endif; ?>
+
+                                            <?php if (!CONTRATOS_CONSULTOR): ?>
+                                            <i class="ph ph-eye text-lg opacity-30" title="Apenas Visualização"></i>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>

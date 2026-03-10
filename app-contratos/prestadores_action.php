@@ -3,16 +3,15 @@
 require_once __DIR__ . '/../auth_check.php';
 require_once __DIR__ . '/auth_module.php';
 
-if (!CONTRATOS_GESTOR) {
-    die("Acesso negado.");
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: prestadores.php");
-    exit;
-}
-
 $action = $_POST['action'] ?? '';
+
+if (($action === 'create' || $action === 'update') && !CONTRATOS_CONSULTOR) {
+    die("Acesso negado: sem permissão para salvar.");
+}
+
+if ($action === 'delete' && !CONTRATOS_GESTOR) {
+    die("Acesso negado: sem permissão para excluir.");
+}
 $id = $_POST['id'] ?? null;
 
 try {
