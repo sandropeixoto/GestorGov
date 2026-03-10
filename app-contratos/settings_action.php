@@ -16,9 +16,8 @@ $action = $_POST['action'] ?? '';
 $tab = $_POST['tab'] ?? '';
 $pk_value = $_POST['pk_value'] ?? null;
 
-try {
-    // Processamento especial para aba de Permissões
-    if ($tab === 'permissoes') {
+// Processamento especial para aba de Permissões
+if ($tab === 'permissoes') {
         if ($action === 'toggle_global_read') {
             $valor = isset($_POST['leitura_global']) ? '1' : '0';
             $stmt = $pdo->prepare("UPDATE contratos_configuracoes SET valor = ? WHERE chave = 'acesso_leitura_global'");
