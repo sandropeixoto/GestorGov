@@ -160,7 +160,7 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                     <h3 class="text-xl font-bold flex items-center gap-2">
                         <i class="ph ph-stack text-primary"></i> Termos e Aditivos
                     </h3>
-                    <?php if (in_array($_SESSION['user_level'] ?? '', ['Administrador', 'Gestor'])): ?>
+                    <?php if (CONTRATOS_CONSULTOR): ?>
                     <a href="contract_form.php?parent_id=<?php echo $id; ?>" class="btn btn-primary btn-sm gap-2">
                         <i class="ph ph-plus-circle"></i> Adicionar Termo
                     </a>
@@ -188,10 +188,15 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                                     <td class="text-right font-semibold">R$ <?php echo number_format($t['ValorGlobalContrato'], 2, ',', '.'); ?></td>
                                     <td class="text-center">
                                         <div class="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <?php if (in_array($_SESSION['user_level'] ?? '', ['Administrador', 'Gestor'])): ?>
-                                            <a href="contract_form.php?id=<?php echo $t['Id']; ?>" class="btn btn-square btn-sm btn-ghost text-info"><i class="ph ph-pencil-simple text-lg"></i></a>
-                                            <button onclick="confirmDelete(<?php echo $t['Id']; ?>, '<?php echo $t['SeqContrato'] . '/' . $t['AnoContrato']; ?>')" class="btn btn-square btn-sm btn-ghost text-error"><i class="ph ph-trash text-lg"></i></button>
-                                            <?php else: ?>
+                                            <?php if (CONTRATOS_CONSULTOR): ?>
+                                            <a href="contract_form.php?id=<?php echo $t['Id']; ?>" class="btn btn-square btn-sm btn-ghost text-info" title="Editar"><i class="ph ph-pencil-simple text-lg"></i></a>
+                                            <?php endif; ?>
+
+                                            <?php if (CONTRATOS_GESTOR): ?>
+                                            <button onclick="confirmDelete(<?php echo $t['Id']; ?>, '<?php echo $t['SeqContrato'] . '/' . $t['AnoContrato']; ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir"><i class="ph ph-trash text-lg"></i></button>
+                                            <?php endif; ?>
+
+                                            <?php if (!CONTRATOS_CONSULTOR): ?>
                                             <i class="ph ph-eye text-lg opacity-30" title="Apenas Visualização"></i>
                                             <?php endif; ?>
                                         </div>

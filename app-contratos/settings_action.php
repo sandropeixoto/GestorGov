@@ -1,6 +1,11 @@
 <?php
 // app-contratos/settings_action.php
-require_once 'config.php';
+require_once __DIR__ . '/../auth_check.php';
+require_once __DIR__ . '/auth_module.php';
+
+if (!CONTRATOS_ADMIN) {
+    die("Acesso negado.");
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: settings.php");
@@ -11,8 +16,32 @@ $action = $_POST['action'] ?? '';
 $tab = $_POST['tab'] ?? '';
 $pk_value = $_POST['pk_value'] ?? null;
 
-// Re-mapear configurações para processamento
-$tables = [
+try {
+    // Processamento especial para aba de Permissões
+    if ($tab === 'permissoes') {
+        if ($action === 'toggle_global_read') {
+            $valor = isset($_POST['leitura_global']) ? '1' : '0';
+            $stmt = $pdo->prepare("UPDATE contratos_configuracoes SET valor = ? WHERE chave = 'acesso_leitura_global'");
+            $stmt->execute([$valor]);
+        } 
+        elseif ($action === 'update_user_permission') {
+            $usuario_id = $_POST['usuario_id'];
+            $perfil = $_POST['perfil'];
+
+            if (empty($perfil)) {
+                $stmt = $pdo->prepare("DELETE FROM contratos_permissoes WHERE usuario_id = ?");
+                $stmt->execute([$usuario_id]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO contratos_permissoes (usuario_id, perfil) VALUES (?, ?) ON DUPLICATE KEY UPDATE perfil = ?");
+                $stmt->execute([$usuario_id, $perfil, $perfil]);
+            }
+        }
+        header("Location: settings.php?tab=permissoes&msg=success");
+        exit;
+    }
+
+    // Re-mapear configurações para processamento de tabelas auxiliares
+    $tables = [
     'diretorias' => ['table' => 'Diretorias', 'pk' => 'IdDiretoria', 'fields' => ['SiglaDiretoria', 'NomeDiretoria']],
     'fontes' => ['table' => 'FontesRecursos', 'pk' => 'IdFonte', 'fields' => ['NomeFonte']],
     'categorias' => ['table' => 'CategoriaContrato', 'pk' => 'Id', 'fields' => ['Codigo', 'Descricao']],

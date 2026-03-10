@@ -3,6 +3,11 @@
 require_once 'config.php';
 require_once 'header.php';
 
+if (!CONTRATOS_CONSULTOR) {
+    echo "<script>window.location.href='index.php';</script>";
+    exit;
+}
+
 $id = $_GET['id'] ?? null;
 $parent_id = $_GET['parent_id'] ?? null;
 $contract = null;

@@ -32,11 +32,12 @@ try {
         }
 
         // Busca o nível do usuário na tabela usuarios
-        $stmt_user = $pdo->prepare("SELECT nivel, nome FROM usuarios WHERE email = ? AND status = 1");
+        $stmt_user = $pdo->prepare("SELECT id, nivel, nome FROM usuarios WHERE email = ? AND status = 1");
         $stmt_user->execute([$result['email']]);
         $user_data = $stmt_user->fetch();
 
         // Define Sessão
+        $_SESSION['user_id'] = $user_data['id'] ?? null;
         $_SESSION['user_email'] = $result['email'];
         $_SESSION['user_name'] = $user_data['nome'] ?? explode('@', $result['email'])[0];
         $_SESSION['user_level'] = $user_data['nivel'] ?? 'Consultor'; 

@@ -33,7 +33,7 @@ $item_justify = $is_collapsed ? 'justify-center' : 'justify-start';
             </a>
         </li>
         
-        <?php if (in_array($_SESSION['user_level'] ?? '', ['Administrador', 'Gestor'])): ?>
+        <?php if (CONTRATOS_GESTOR): ?>
         <li class="menu-title text-white/20 text-[10px] uppercase font-bold tracking-widest px-4 mt-6 mb-2 <?php echo $text_class; ?>">Administração</li>
         
         <li>
@@ -42,6 +42,9 @@ $item_justify = $is_collapsed ? 'justify-center' : 'justify-start';
                 <span class="tracking-tight whitespace-nowrap <?php echo $text_class; ?>">Fornecedores</span>
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if (CONTRATOS_ADMIN): ?>
         <li>
             <a href="settings.php" class="p-3 rounded-xl flex items-center gap-4 transition-all <?php echo isActive('settings.php', $current_page); ?> <?php echo $is_collapsed ? 'justify-center tooltip tooltip-right' : ''; ?>" <?php echo $is_collapsed ? 'data-tip="Configurações"' : ''; ?>>
                 <i class="ph ph-gear text-2xl shrink-0"></i> 
@@ -62,7 +65,14 @@ $item_justify = $is_collapsed ? 'justify-center' : 'justify-start';
         </div>
         <div class="overflow-hidden <?php echo $text_class; ?>">
             <p class="font-bold text-xs truncate"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Usuário'); ?></p>
-            <p class="text-[9px] uppercase font-black opacity-30"><?php echo htmlspecialchars($_SESSION['user_level'] ?? 'Consultor'); ?></p>
+            <p class="text-[9px] uppercase font-black opacity-30">
+                <?php 
+                if (CONTRATOS_ADMIN) echo 'Administrador';
+                elseif (CONTRATOS_GESTOR) echo 'Gestor';
+                elseif (CONTRATOS_CONSULTOR) echo 'Consultor';
+                else echo 'Leitor';
+                ?>
+            </p>
         </div>
     </div>
 </div>

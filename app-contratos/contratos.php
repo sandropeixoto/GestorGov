@@ -90,7 +90,7 @@ try {
             <h2 class="text-3xl font-bold text-base-content">Lista de Contratos</h2>
             <p class="text-base-content/60">Gerencie todos os contratos registrados.</p>
         </div>
-        <?php if (in_array($_SESSION['user_level'] ?? '', ['Administrador', 'Gestor'])): ?>
+        <?php if (CONTRATOS_CONSULTOR): ?>
         <a href="contract_form.php" class="btn btn-primary shadow-lg">
             <i class="ph ph-plus-circle text-xl"></i> Novo Contrato
         </a>
@@ -261,14 +261,19 @@ try {
                         </td>
                         <td>
                             <div class="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <?php if (in_array($_SESSION['user_level'] ?? '', ['Administrador', 'Gestor'])): ?>
+                                <?php if (CONTRATOS_CONSULTOR): ?>
                                 <a href="contract_form.php?id=<?php echo $c['Id']; ?>" onclick="event.stopPropagation()" class="btn btn-square btn-sm btn-ghost text-info" title="Editar">
                                     <i class="ph ph-pencil-simple text-lg"></i>
                                 </a>
+                                <?php endif; ?>
+
+                                <?php if (CONTRATOS_GESTOR): ?>
                                 <button onclick="event.stopPropagation(); confirmDelete(<?php echo $c['Id']; ?>, '<?php echo $c['SeqContrato'] . '/' . $c['AnoContrato']; ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir">
                                     <i class="ph ph-trash text-lg"></i>
                                 </button>
-                                <?php else: ?>
+                                <?php endif; ?>
+
+                                <?php if (!CONTRATOS_CONSULTOR): ?>
                                 <i class="ph ph-eye text-lg opacity-30" title="Apenas Visualização"></i>
                                 <?php endif; ?>
                             </div>

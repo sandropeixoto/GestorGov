@@ -1,6 +1,11 @@
 <?php
 // app-contratos/prestadores_action.php
-require_once 'config.php';
+require_once __DIR__ . '/../auth_check.php';
+require_once __DIR__ . '/auth_module.php';
+
+if (!CONTRATOS_GESTOR) {
+    die("Acesso negado.");
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: prestadores.php");

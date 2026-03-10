@@ -1,6 +1,7 @@
 <?php
 // app-contratos/contracts_action.php
-require_once 'config.php';
+require_once __DIR__ . '/../auth_check.php';
+require_once __DIR__ . '/auth_module.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: contratos.php");
@@ -8,6 +9,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $action = $_POST['action'] ?? '';
+
+// Proteção de permissão no Backend
+if (($action === 'create' || $action === 'update') && !CONTRATOS_CONSULTOR) {
+    die("Acesso negado: você não tem permissão para salvar documentos.");
+}
+if ($action === 'delete' && !CONTRATOS_GESTOR) {
+    die("Acesso negado: você não tem permissão para excluir documentos.");
+}
 $id = $_POST['id'] ?? null;
 
 try {

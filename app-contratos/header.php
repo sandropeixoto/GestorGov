@@ -1,6 +1,7 @@
 <?php
 // app-contratos/header.php
 require_once __DIR__ . '/../auth_check.php';
+require_once __DIR__ . '/auth_module.php';
 
 // Controle de estado da Sidebar
 if (isset($_GET['toggle_sidebar'])) {
