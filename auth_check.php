@@ -22,6 +22,17 @@ if (!isset($_SESSION['user_email'])) {
             
             if ($user) {
                 $_SESSION['user_email'] = $user['email'];
+                
+                // Re-hidrata os dados do perfil do usuário
+                $stmt_u = $pdo->prepare("SELECT id, nome, nivel FROM usuarios WHERE email = ? AND status = 1");
+                $stmt_u->execute([$user['email']]);
+                $u_data = $stmt_u->fetch();
+                
+                if ($u_data) {
+                    $_SESSION['user_id']    = $u_data['id'];
+                    $_SESSION['user_name']  = $u_data['nome'];
+                    $_SESSION['user_level'] = $u_data['nivel'];
+                }
             } else {
                 setcookie('gestorgov_session', '', time() - 3600, "/");
                 header("Location: index.php?error=expired");

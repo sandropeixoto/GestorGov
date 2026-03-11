@@ -2,12 +2,16 @@
 // app-contratos/auth_module.php
 require_once 'config.php';
 
-// Se por algum motivo o ID não estiver na sessão, tenta recuperar pelo e-mail
-if (!isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
-    $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = ?");
+// Se por algum motivo dados críticos não estiverem na sessão, tenta recuperar pelo e-mail
+if ((!isset($_SESSION['user_id']) || !isset($_SESSION['user_level'])) && isset($_SESSION['user_email'])) {
+    $stmt = $pdo->prepare("SELECT id, nivel, nome FROM usuarios WHERE email = ? AND status = 1");
     $stmt->execute([$_SESSION['user_email']]);
     $u = $stmt->fetch();
-    if ($u) $_SESSION['user_id'] = $u['id'];
+    if ($u) {
+        $_SESSION['user_id']    = $u['id'];
+        $_SESSION['user_level'] = $u['nivel'];
+        $_SESSION['user_name']  = $u['nome'];
+    }
 }
 
 $user_id = $_SESSION['user_id'] ?? 0;
