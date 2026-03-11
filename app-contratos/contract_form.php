@@ -37,17 +37,6 @@ $diretorias = $pdo->query("SELECT IdDiretoria, NomeDiretoria, SiglaDiretoria FRO
 
 // Fetch Fontes for dropdown
 $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY NomeFonte ASC")->fetchAll();
-
-// Fetch Document Types
-try {
-    $tipos_documentos = $pdo->query("SELECT Id, Nome FROM TiposDocumentos ORDER BY Id ASC")->fetchAll();
-} catch (PDOException $e) {
-    // Fallback se a tabela ainda não existir
-    $tipos_documentos = [];
-}
-
-// Fetch Main Contracts for PaiId dropdown
-$main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM Contratos WHERE PaiId = 0 ORDER BY AnoContrato DESC, SeqContrato DESC")->fetchAll();
 ?>
 
 <div class="max-w-4xl mx-auto space-y-6">
@@ -63,6 +52,8 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
 
     <form action="contracts_action.php" method="POST" class="card bg-base-100 shadow-xl border border-base-200">
         <input type="hidden" name="action" value="<?php echo $id ? 'update' : 'create'; ?>">
+        <input type="hidden" name="PaiId" value="0">
+        <input type="hidden" name="TipoDocumentoId" value="1">
         <?php if ($id): ?>
             <input type="hidden" name="id" value="<?php echo $id; ?>">
         <?php endif; ?>
@@ -73,58 +64,17 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                 <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
                     <i class="ph ph-info text-primary"></i> Informações Básicas
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Número do Contrato</span></label>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="form-control md:col-span-1">
+                        <label class="label"><span class="label-text font-semibold">Número</span></label>
                         <input type="number" name="SeqContrato" required class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['SeqContrato'] ?? ''); ?>" placeholder="Ex: 45">
                     </div>
-                    <div class="form-control">
+                    <div class="form-control md:col-span-1">
                         <label class="label"><span class="label-text font-semibold">Ano</span></label>
                         <input type="number" name="AnoContrato" required class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['AnoContrato'] ?? date('Y')); ?>">
                     </div>
-                </div>
-                    <div class="form-control md:col-span-4">
-                        <label class="label"><span class="label-text font-semibold">Contrato Principal (Se for um Termo)</span></label>
-                        <select name="PaiId" id="PaiId" class="select select-bordered w-full" onchange="toggleDocType()">
-                            <option value="0">Nenhum (Este é um Contrato Principal)</option>
-                            <?php foreach($main_contracts as $mc): ?>
-                                <?php if ($mc['Id'] != $id): ?>
-                                <option value="<?php echo $mc['Id']; ?>" <?php echo ($contract['PaiId'] ?? 0) == $mc['Id'] ? 'selected' : ''; ?>>
-                                    Contrato <?php echo $mc['SeqContrato'] . '/' . $mc['AnoContrato']; ?> - <?php echo substr(htmlspecialchars($mc['Objeto']), 0, 80); ?>...
-                                </option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="form-control md:col-span-4 <?php echo ($contract['PaiId'] ?? 0) > 0 ? '' : 'hidden'; ?>" id="doctype_container">
-                        <label class="label"><span class="label-text font-semibold text-primary">Tipo do Termo</span></label>
-                        <select name="TipoDocumentoId" id="TipoDocumentoId" class="select select-bordered select-primary w-full">
-                            <?php foreach($tipos_documentos as $td): ?>
-                                <?php if ($td['Id'] > 1): ?>
-                                    <option value="<?php echo $td['Id']; ?>" <?php echo ($contract['TipoDocumentoId'] ?? '') == $td['Id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($td['Nome']); ?>
-                                    </option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <script>
-                    function toggleDocType() {
-                        const paiId = document.getElementById('PaiId').value;
-                        const docTypeContainer = document.getElementById('doctype_container');
-                        if (paiId > 0) {
-                            docTypeContainer.classList.remove('hidden');
-                        } else {
-                            docTypeContainer.classList.add('hidden');
-                        }
-                    }
-                    // Executa no carregamento caso venha com PaiId pré-selecionado
-                    window.onload = toggleDocType;
-                    </script>
                     <div class="form-control md:col-span-4">
                         <label class="label"><span class="label-text font-semibold">Objeto</span></label>
                         <textarea name="Objeto" required class="textarea textarea-bordered h-24" 
@@ -138,20 +88,20 @@ $main_contracts = $pdo->query("SELECT Id, SeqContrato, AnoContrato, Objeto FROM 
                 <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
                     <i class="ph ph-calendar text-primary"></i> Datas e Vigência
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Data de Assinatura</span></label>
-                        <input type="date" name="DataAssinatura" required class="input input-bordered" 
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="form-control md:col-span-1">
+                        <label class="label"><span class="label-text font-semibold">Data Assinatura</span></label>
+                        <input type="date" name="DataAssinatura" required class="input input-bordered w-full max-w-[180px]" 
                                value="<?php echo $contract['DataAssinatura'] ?? ''; ?>">
                     </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Início da Vigência</span></label>
-                        <input type="date" name="VigenciaInicio" required class="input input-bordered" 
+                    <div class="form-control md:col-span-1">
+                        <label class="label"><span class="label-text font-semibold">Início Vigência</span></label>
+                        <input type="date" name="VigenciaInicio" required class="input input-bordered w-full max-w-[180px]" 
                                value="<?php echo $contract['VigenciaInicio'] ?? ''; ?>">
                     </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Fim da Vigência</span></label>
-                        <input type="date" name="VigenciaFim" required class="input input-bordered" 
+                    <div class="form-control md:col-span-1">
+                        <label class="label"><span class="label-text font-semibold">Fim Vigência</span></label>
+                        <input type="date" name="VigenciaFim" required class="input input-bordered w-full max-w-[180px]" 
                                value="<?php echo $contract['VigenciaFim'] ?? ''; ?>">
                     </div>
                 </div>
