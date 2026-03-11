@@ -1,42 +1,47 @@
-# 📜 GestorGov - Manual de Verdades Absolutas
+# 📜 GestorGov - Manual de Verdades Absolutas (SSOT)
 
-Este documento define os padrões inegociáveis do sistema. Qualquer nova implementação deve respeitar rigorosamente estas definições.
+Este documento é a **Única Fonte de Verdade** para o layout, UX e Copywriting do sistema. Qualquer alteração nestes padrões exige instrução explícita e atualização deste manual.
 
-## 1. Identidade Visual e Layout
-- **Layout Base**: Fullscreen utilizando **Flexbox**. O conteúdo ocupa 100% da largura restante.
-- **Sidebar (Menu Lateral)**:
-    - Cor de Fundo: Deep Navy Blue `#0f172a`.
-    - Cores de Fonte: Branco puro ou com opacidade para hierarquia.
-    - Comportamento: Colapsável no desktop (estado em `$_SESSION['sidebar_collapsed']`).
-    - Mobile: Drawer lateral oculto por padrão.
-    - **Rodapé da Sidebar**: Exibe nome do usuário e Perfil Efetivo no módulo.
-- **Topbar**: Glassmorphism (`backdrop-filter: blur`), fixo no topo, contém breadcrumbs e menu de perfil.
-- **Frameworks**: PHP 8.x (Vanilla), TailwindCSS (CDN), DaisyUI (Tema: `corporate`).
-- **Ícones**: Sempre utilizar **Phosphor Icons** (`ph` ou `ph-fill`).
+## 1. Identidade Visual e UI
+### 🎨 Cores e Estilos
+- **Fundo da Sidebar/Drawer**: Deep Navy Blue `#0f172a`.
+- **Fundo do Conteúdo Principal**: Off-White/Blueish `#f8fafc`.
+- **Cor Primária (DaisyUI Primary)**: Indigo/Purple `#570df8`.
+- **Cores de Gráficos (Analytics)**: `['#570df8', '#f000b8', '#37cdbe', '#3d4451', '#fbbd23', '#ef4f4f']`.
+- **Bordas e Divisores**: `border-white/5` (Sidebar) e `border-base-200` (Cards).
+- **Glassmorphism**: Header com `backdrop-filter: blur(10px)` e fundo `rgba(255, 255, 255, 0.85)`.
 
-## 2. Sistema de Permissões (Módulo Contratos)
-O acesso é controlado por constantes definidas em `auth_module.php`:
-- **Administrador (Global)**: Acesso total, incluindo aba "Permissões" em Configurações.
-- **Gestor (Módulo)**: Pode Incluir, Editar e Excluir contratos e fornecedores. Não acessa Configurações.
-- **Consultor (Módulo)**: Pode Incluir e Editar contratos e fornecedores. **Não pode excluir**.
-- **Leitor (Global)**: Acesso apenas de visualização se a chave `acesso_leitura_global` estiver ativa.
-- **Bloqueado**: Sem perfil definido e com leitura global desligada, o acesso ao módulo é negado.
+### 🔡 Tipografia e Espaçamentos
+- **Fonte Principal**: `Inter` (Google Fonts), sans-serif.
+- **Títulos de Página**: `text-3xl font-bold text-base-content`.
+- **Títulos de Seção**: `text-lg font-bold border-b pb-2 mb-4`.
+- **Padding do Viewport**: `p-4 md:p-8`.
+- **Gaps**: `gap-6` (Grids de Stats), `gap-8` (Grids de Conteúdo Principal).
 
-## 3. Regras de Negócio de Contratos
-- **Identificação**: O número oficial é `SeqContrato` / `AnoContrato`.
-- **Hierarquia**:
-    - **Contrato Principal**: `PaiId = 0`.
-    - **Termos/Aditivos**: `PaiId = ID_DO_CONTRATO_PAI`.
-- **Vigência Efetiva**: Calculada pelo `MAX(VigenciaFim)` entre o principal e todos os seus termos vinculados.
-- **Dossiê**: A `contract_view.php` é o centro de gestão, consolidando todo o histórico do contrato.
+## 2. UX e Fluxo de Navegação
+### 🔄 Caminhos Definidos
+- **Dashboard ➔ Listagem**: Clicar nos cards de KPI (Total, Vigentes, A Vencer) redireciona para `contratos.php` com filtros aplicados.
+- **Listagem ➔ Dossiê**: O clique na linha da tabela (`tr`) redireciona para `contract_view.php?id={id}`.
+- **Dossiê ➔ Edição**: Botão "Editar Contrato" leva para `contract_form.php?id={id}`.
+- **Dossiê ➔ Novo Termo**: Botão "Adicionar Termo" leva para `contract_form.php?parent_id={id}`.
+- **Persistência**: Filtros de pesquisa e estado da sidebar (`$_SESSION['sidebar_collapsed']`) são mantidos durante a sessão.
 
-## 4. Padrões de Desenvolvimento
-- **Banco de Dados**: PDO com Prepared Statements.
-- **Segurança**: Proteção de backend em todos os arquivos `_action.php` validando permissões específicas.
-- **Componentização**: Partes repetitivas da sidebar em `sidebar_content.php`.
-- **Persistência**: Filtros e estados de UI mantidos via `$_SESSION`.
+### 🛡️ Regras de Interação
+- **Modais de Exclusão**: Sempre exigir confirmação via `<dialog>` antes de processar `DELETE`.
+- **Botão de Voltar**: Presente em formulários e dossiês, sempre retornando à listagem principal.
+- **Sidebar Retrátil**: Salva estado no backend para consistência entre páginas.
 
-## 5. Estrutura de Diretórios
-- `/app-contratos/`: Módulo de gestão contratual.
-- `auth_check.php` & `verify.php`: Núcleo de autenticação global.
-- `auth_module.php`: Lógica de permissões específica do módulo.
+## 3. Copywriting (Textos Exatos)
+### 🔘 Botões e Ações
+- **Principal**: `Novo Contrato`, `Salvar Contrato`, `Adicionar Termo`.
+- **Secundário**: `Ver todos`, `Limpar`, `Remover todos`, `Cancelar`.
+- **Crítico**: `Sim, Excluir`.
+
+### 🏷️ Labels e Cabeçalhos
+- **Dashboard**: "Dashboard de Contratos", "Total de Contratos", "Contratos Vigentes", "A vencer (30 dias)", "Valor Global Acumulado".
+- **Listagem**: "Lista de Contratos", "Número/Ano", "Objeto", "Fornecedor", "Vencimento", "Valor Global".
+- **Breadcrumbs**: "Painel Geral", "Início", "Módulo de Contratos".
+
+## 4. Diretriz de Imutabilidade
+> [!IMPORTANT]
+> **As definições acima são imutáveis.** Não alterar cores, espaçamentos, fontes ou textos de interface sem ordem específica. Em caso de dúvida, a implementação deve seguir rigorosamente o código atual mapeado neste manual.

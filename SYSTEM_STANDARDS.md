@@ -3,24 +3,15 @@
 ## 1. Backend (PHP 8.x)
 - **Prepared Statements**: SEMPRE utilizar `PDO::prepare` e `execute` para evitar SQL Injection.
 - **Segurança de Acesso**: Todo arquivo de ação (`_action.php`) deve carregar `auth_check.php` e `auth_module.php` e validar as permissões (`CONTRATOS_GESTOR`, `CONTRATOS_CONSULTOR`).
-- **Gestão de Erros**: Utilizar blocos `try-catch` em todas as operações de banco de dados e exibir erros de forma segura (sem vazar credenciais).
+- **Autenticação**: Baseada em links de acesso enviados por e-mail, linkados à tabela `login_tokens`.
 
 ## 2. Frontend (Tailwind + DaisyUI)
-- **Tema**: `corporate`.
-- **Botões**:
-    - Primário: `btn-primary`.
-    - Perigo: `btn-error`.
-    - Fantasma: `btn-ghost`.
-- **Inputs**: `input input-bordered w-full`.
-- **Modais**: Utilizar a tag `<dialog class="modal">` com controle via JavaScript (`modal.showModal()`).
-- **Icons**: Importados via CDN do Phosphor Icons.
+- **Tema**: `corporate` (DaisyUI).
+- **Framework**: TailwindCSS via CDN para desenvolvimento rápido.
+- **Icons**: Phosphor Icons (`ph ph-xxx`).
+- **Gráficos**: Chart.js para visualização de dados no Dashboard.
 
 ## 3. SQL e Banco de Dados
-- **Relacionamentos**: Utilizar `ON DELETE CASCADE` para garantir integridade (ex: permissões de usuário excluídas com o usuário).
-- **Tipagem**: IDs como `INT AUTO_INCREMENT`, chaves de configuração como `VARCHAR`.
-- **Engine**: `InnoDB` para suporte a transações e chaves estrangeiras.
-
-## 4. UI/UX (Consistência)
-- **Feedback Visual**: Exibir parâmetros de filtros ativos em badges (`contratos.php`).
-- **Estados de Sidebar**: Sincronizar classes CSS com a variável `$_SESSION['sidebar_collapsed']`.
-- **Mobile First**: Garantir que o drawer lateral funcione corretamente em telas menores.
+- **Identificação**: Contratos são identificados pela dupla `SeqContrato` / `AnoContrato`.
+- **Hierarquia**: `PaiId = 0` para contratos principais; `PaiId > 0` para termos vinculados.
+- **Vigência**: Vigência efetiva é o maior valor de `VigenciaFim` entre o contrato principal e seus aditivos.
