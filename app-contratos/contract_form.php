@@ -9,22 +9,17 @@ if (!CONTRATOS_CONSULTOR) {
 }
 
 $id = $_GET['id'] ?? null;
-$parent_id = $_GET['parent_id'] ?? null;
 $contract = null;
+$prestador_atual = null;
 
 if ($id) {
-    $stmt = $pdo->prepare("SELECT * FROM Contratos WHERE Id = ?");
+    $stmt = $pdo->prepare("SELECT c.*, p.CNPJ as PrestadorDoc, p.Nome as PrestadorNome 
+                           FROM Contratos c 
+                           LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
+                           WHERE c.Id = ?");
     $stmt->execute([$id]);
     $contract = $stmt->fetch();
 }
-
-// Se não houver contrato mas houver parent_id, define o PaiId inicial
-if (!$contract && $parent_id) {
-    $contract = ['PaiId' => $parent_id];
-}
-
-// Fetch Prestadors for dropdown
-$prestadors = $pdo->query("SELECT Id, Nome FROM Prestador ORDER BY Nome ASC")->fetchAll();
 
 // Fetch Categories for dropdown
 $categories = $pdo->query("SELECT Id, Descricao FROM CategoriaContrato ORDER BY Descricao ASC")->fetchAll();
@@ -112,17 +107,33 @@ $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY No
                 <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
                     <i class="ph ph-briefcase text-primary"></i> Fornecedor e Valores
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Fornecedor / Prestador</span></label>
-                        <select name="PrestadorId" required class="select select-bordered w-full">
-                            <option value="">Selecione um fornecedor</option>
-                            <?php foreach($prestadors as $p): ?>
-                                <option value="<?php echo $p['Id']; ?>" <?php echo ($contract['PrestadorId'] ?? '') == $p['Id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($p['Nome']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <label class="label">
+                            <span class="label-text font-semibold">Documento do Fornecedor (CPF/CNPJ)</span>
+                            <a href="prestadores.php" target="_blank" class="label-text-alt link link-primary flex items-center gap-1">
+                                <i class="ph ph-plus-circle"></i> Novo Fornecedor
+                            </a>
+                        </label>
+                        <div class="flex gap-2">
+                            <div class="relative flex-1">
+                                <input type="text" id="prestador_doc" class="input input-bordered w-full pr-10" 
+                                       placeholder="Digite o documento para buscar..."
+                                       value="<?php echo htmlspecialchars($contract['PrestadorDoc'] ?? ''); ?>"
+                                       onblur="buscarPrestador(this.value)">
+                                <div id="doc_loading" class="absolute right-3 top-3 hidden">
+                                    <span class="loading loading-spinner loading-sm opacity-50"></span>
+                                </div>
+                            </div>
+                            <input type="hidden" name="PrestadorId" id="PrestadorId" required value="<?php echo $contract['PrestadorId'] ?? ''; ?>">
+                        </div>
+                        <div id="prestador_info" class="mt-2 p-3 bg-base-200 rounded-lg border border-base-300 flex items-center gap-3 <?php echo isset($contract['PrestadorNome']) ? '' : 'hidden'; ?>">
+                            <i class="ph ph-check-circle text-success text-xl"></i>
+                            <div>
+                                <p class="text-xs uppercase font-bold opacity-50">Nome do Fornecedor:</p>
+                                <p id="prestador_nome" class="font-bold"><?php echo htmlspecialchars($contract['PrestadorNome'] ?? ''); ?></p>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Valor Mensal (R$)</span></label>
@@ -142,9 +153,9 @@ $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY No
                 <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
                     <i class="ph ph-user-focus text-primary"></i> Fiscalização
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Diretoria Responsável</span></label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="form-control md:col-span-1">
+                        <label class="label"><span class="label-text font-semibold">Diretoria Resp.</span></label>
                         <select name="DiretoriaId" class="select select-bordered w-full">
                             <option value="">Selecione...</option>
                             <?php foreach($diretorias as $d): ?>
@@ -154,24 +165,24 @@ $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY No
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-control">
+                    <div class="form-control md:col-span-2">
                         <label class="label"><span class="label-text font-semibold">Fiscal Titular</span></label>
-                        <input type="text" name="FiscalContrato" class="input input-bordered" 
+                        <input type="text" name="FiscalContrato" class="input input-bordered w-full" 
                                value="<?php echo htmlspecialchars($contract['FiscalContrato'] ?? ''); ?>">
                     </div>
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">E-mail do Fiscal</span></label>
-                        <input type="email" name="EmailFiscal" class="input input-bordered" 
+                        <input type="email" name="EmailFiscal" class="input input-bordered w-full" 
                                value="<?php echo htmlspecialchars($contract['EmailFiscal'] ?? ''); ?>">
                     </div>
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Fiscal Substituto</span></label>
-                        <input type="text" name="FiscalSubstituto" class="input input-bordered" 
+                        <input type="text" name="FiscalSubstituto" class="input input-bordered w-full" 
                                value="<?php echo htmlspecialchars($contract['FiscalSubstituto'] ?? ''); ?>">
                     </div>
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">E-mail do Substituto</span></label>
-                        <input type="email" name="EmailFiscalSubstituto" class="input input-bordered" 
+                        <input type="email" name="EmailFiscalSubstituto" class="input input-bordered w-full" 
                                value="<?php echo htmlspecialchars($contract['EmailFiscalSubstituto'] ?? ''); ?>">
                     </div>
                 </div>
@@ -238,5 +249,39 @@ $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY No
         </div>
     </form>
 </div>
+
+<script>
+function buscarPrestador(doc) {
+    if (doc.length < 3) return;
+    
+    const loading = document.getElementById('doc_loading');
+    const info = document.getElementById('prestador_info');
+    const nome = document.getElementById('prestador_nome');
+    const inputId = document.getElementById('PrestadorId');
+    
+    loading.classList.remove('hidden');
+    
+    fetch('ajax_prestador.php?doc=' + encodeURIComponent(doc))
+        .then(response => response.json())
+        .then(data => {
+            loading.classList.add('hidden');
+            if (data.success) {
+                nome.innerText = data.data.Nome;
+                inputId.value = data.data.Id;
+                info.classList.remove('hidden');
+                info.classList.add('flex');
+            } else {
+                nome.innerText = '';
+                inputId.value = '';
+                info.classList.add('hidden');
+                alert('Fornecedor não encontrado com este documento.');
+            }
+        })
+        .catch(error => {
+            loading.classList.add('hidden');
+            console.error('Erro:', error);
+        });
+}
+</script>
 
 <?php require_once 'footer.php'; ?>
