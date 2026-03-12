@@ -44,6 +44,7 @@ try {
             'ModalidadeId' => $_POST['ModalidadeId'] ?: null,
             'NumeroModalidade' => $_POST['NumeroModalidade'] ?? null,
             'DiretoriaId' => $_POST['DiretoriaId'] ?: null,
+            'CoordenacaoId' => $_POST['CoordenacaoId'] ?: null,
             'CategoriaContratoId' => $_POST['CategoriaContratoId'] ?: null,
             'FonteRecursosId' => $_POST['FonteRecursosId'] ?: null
         ];

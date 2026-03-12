@@ -32,6 +32,9 @@ $diretorias = $pdo->query("SELECT IdDiretoria, NomeDiretoria, SiglaDiretoria FRO
 
 // Fetch Fontes for dropdown
 $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY NomeFonte ASC")->fetchAll();
+
+// Fetch Coordenacoes for dropdown
+$coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER BY Nome ASC")->fetchAll();
 ?>
 
 <div class="max-w-4xl mx-auto space-y-6">
@@ -151,10 +154,10 @@ $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY No
             <!-- Fiscalização -->
             <section>
                 <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
-                    <i class="ph ph-user-focus text-primary"></i> Fiscalização
+                    <i class="ph ph-user-focus text-primary"></i> Fiscalização e Gestão
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="form-control md:col-span-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Diretoria Resp.</span></label>
                         <select name="DiretoriaId" class="select select-bordered w-full">
                             <option value="">Selecione...</option>
@@ -165,7 +168,18 @@ $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY No
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-control md:col-span-2">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Coordenação</span></label>
+                        <select name="CoordenacaoId" class="select select-bordered w-full">
+                            <option value="">Selecione...</option>
+                            <?php foreach($coordenacoes as $c): ?>
+                                <option value="<?php echo $c['Id']; ?>" <?php echo ($contract['CoordenacaoId'] ?? '') == $c['Id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($c['Nome']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Fiscal Titular</span></label>
                         <input type="text" name="FiscalContrato" class="input input-bordered w-full" 
                                value="<?php echo htmlspecialchars($contract['FiscalContrato'] ?? ''); ?>">

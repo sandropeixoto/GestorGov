@@ -16,6 +16,7 @@ try {
         SELECT c.*, p.Nome as PrestadorNome, p.CNPJ as PrestadorCNPJ, p.Email as PrestadorEmail,
                m.Descricao as ModalidadeNome, cat.Descricao as CategoriaNome, f.NomeFonte as FonteNome,
                d.SiglaDiretoria as DiretoriaSigla,
+               coord.Nome as CoordenacaoNome, coord.Responsavel as CoordenacaoResponsavel, coord.Email as CoordenacaoEmail,
                GREATEST(c.VigenciaFim, COALESCE((SELECT MAX(VigenciaFim) FROM Contratos WHERE PaiId = c.Id), '0000-00-00')) as VigenciaEfetiva
         FROM Contratos c
         LEFT JOIN Prestador p ON c.PrestadorId = p.Id
@@ -23,6 +24,7 @@ try {
         LEFT JOIN CategoriaContrato cat ON c.CategoriaContratoId = cat.Id
         LEFT JOIN FontesRecursos f ON c.FonteRecursosId = f.IdFonte
         LEFT JOIN Diretorias d ON c.DiretoriaId = d.IdDiretoria
+        LEFT JOIN contratos_coordenacoes coord ON c.CoordenacaoId = coord.Id
         WHERE c.Id = ? AND c.PaiId = 0
     ");
     $stmt->execute([$id]);
@@ -139,6 +141,7 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                                 <div class="space-y-3">
                                     <p class="text-sm"><strong>Diretoria:</strong> <?php echo htmlspecialchars($contract['DiretoriaSigla'] ?? 'Não informada'); ?></p>
+                                    <p class="text-sm"><strong>Coordenação:</strong> <?php echo htmlspecialchars($contract['CoordenacaoNome'] ?? 'Não informada'); ?></p>
                                     <p class="text-sm"><strong>Fiscal Titular:</strong> <?php echo htmlspecialchars($contract['FiscalContrato'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($contract['EmailFiscal'] ?? '-'); ?>)</p>
                                     <p class="text-sm"><strong>Fiscal Substituto:</strong> <?php echo htmlspecialchars($contract['FiscalSubstituto'] ?? 'N/A'); ?></p>
                                 </div>

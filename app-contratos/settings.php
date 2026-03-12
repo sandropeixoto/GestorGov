@@ -56,6 +56,16 @@ $tables = [
             'Nome' => ['label' => 'Nome do Tipo', 'type' => 'text']
         ]
     ],
+    'coordenacoes' => [
+        'title' => 'Coordenações',
+        'table' => 'contratos_coordenacoes',
+        'pk' => 'Id',
+        'fields' => [
+            'Nome' => ['label' => 'Nome da Coordenação', 'type' => 'text'],
+            'Responsavel' => ['label' => 'Responsável', 'type' => 'text'],
+            'Email' => ['label' => 'E-mail do Responsável', 'type' => 'email']
+        ]
+    ],
     'permissoes' => [
         'title' => 'Permissões',
         'table' => 'contratos_permissoes',

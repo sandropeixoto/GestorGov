@@ -45,7 +45,8 @@ if ($tab === 'permissoes') {
     'fontes' => ['table' => 'FontesRecursos', 'pk' => 'IdFonte', 'fields' => ['NomeFonte']],
     'categorias' => ['table' => 'CategoriaContrato', 'pk' => 'Id', 'fields' => ['Codigo', 'Descricao']],
     'modalidades' => ['table' => 'Modalidade', 'pk' => 'Id', 'fields' => ['Codigo', 'Descricao']],
-    'tipos_doc' => ['table' => 'TiposDocumentos', 'pk' => 'Id', 'fields' => ['Nome']]
+    'tipos_doc' => ['table' => 'TiposDocumentos', 'pk' => 'Id', 'fields' => ['Nome']],
+    'coordenacoes' => ['table' => 'contratos_coordenacoes', 'pk' => 'Id', 'fields' => ['Nome', 'Responsavel', 'Email']]
 ];
 
 if (!isset($tables[$tab])) {
