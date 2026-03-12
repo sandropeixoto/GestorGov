@@ -149,6 +149,7 @@ try {
                                         </td>
                                         <td class="text-right">
                                             <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onclick="confirmWelcome(<?php echo $u['id']; ?>, '<?php echo htmlspecialchars($u['nome']); ?>')" class="btn btn-square btn-sm btn-ghost text-primary" title="Enviar e-mail de Boas-vindas"><i class="ph ph-paper-plane-tilt text-lg"></i></button>
                                                 <a href="?id=<?php echo $u['id']; ?>" class="btn btn-square btn-sm btn-ghost text-info"><i class="ph ph-pencil-simple text-lg"></i></a>
                                                 <button onclick="confirmDelete(<?php echo $u['id']; ?>, '<?php echo htmlspecialchars($u['nome']); ?>')" class="btn btn-square btn-sm btn-ghost text-error"><i class="ph ph-trash text-lg"></i></button>
                                             </div>
@@ -162,6 +163,21 @@ try {
             </div>
         </div>
     </main>
+
+    <dialog id="welcome_modal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg text-primary flex items-center gap-2"><i class="ph ph-paper-plane-tilt"></i> Boas-vindas ao GestorGov</h3>
+        <p class="py-4 text-sm">Deseja enviar o e-mail de instruções e boas-vindas para <strong><span id="welcome_name"></span></strong>?</p>
+        <div class="modal-action">
+          <form method="POST" action="users_action.php">
+            <input type="hidden" name="action" value="send_welcome">
+            <input type="hidden" name="id" id="welcome_id">
+            <button type="submit" class="btn btn-primary text-white">Sim, Enviar Agora</button>
+            <button type="button" class="btn" onclick="welcome_modal.close()">Cancelar</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
 
     <dialog id="delete_modal" class="modal">
       <div class="modal-box">
@@ -178,7 +194,34 @@ try {
       </div>
     </dialog>
 
+    <?php if (isset($_GET['msg'])): ?>
+    <div class="toast toast-top toast-end mt-16">
+        <?php if ($_GET['msg'] === 'email_sent'): ?>
+            <div class="alert alert-success text-white shadow-lg">
+                <i class="ph ph-check-circle text-xl"></i>
+                <span>E-mail enviado com sucesso!</span>
+            </div>
+        <?php elseif ($_GET['msg'] === 'success'): ?>
+            <div class="alert alert-success text-white shadow-lg">
+                <i class="ph ph-check-circle text-xl"></i>
+                <span>Operação realizada com sucesso!</span>
+            </div>
+        <?php endif; ?>
+    </div>
     <script>
+        setTimeout(() => {
+            document.querySelector('.toast').classList.add('hidden');
+        }, 3000);
+    </script>
+    <?php endif; ?>
+
+    <script>
+        function confirmWelcome(id, name) {
+            document.getElementById('welcome_id').value = id;
+            document.getElementById('welcome_name').innerText = name;
+            welcome_modal.showModal();
+        }
+
         function confirmDelete(id, name) {
             document.getElementById('del_id').value = id;
             document.getElementById('del_name').innerText = name;
