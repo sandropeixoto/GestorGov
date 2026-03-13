@@ -163,7 +163,7 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                             <option value="">Selecione...</option>
                             <?php foreach($diretorias as $d): ?>
                                 <option value="<?php echo $d['IdDiretoria']; ?>" <?php echo ($contract['DiretoriaId'] ?? '') == $d['IdDiretoria'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($d['SiglaDiretoria']); ?>
+                                    <?php echo htmlspecialchars($d['SiglaDiretoria'] ?? ''); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -174,7 +174,7 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                             <option value="">Selecione...</option>
                             <?php foreach($coordenacoes as $c): ?>
                                 <option value="<?php echo $c['Id']; ?>" <?php echo ($contract['CoordenacaoId'] ?? '') == $c['Id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($c['Nome']); ?>
+                                    <?php echo htmlspecialchars($c['Nome'] ?? ''); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -214,7 +214,7 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                             <option value="">Selecione...</option>
                             <?php foreach($categories as $cat): ?>
                                 <option value="<?php echo $cat['Id']; ?>" <?php echo ($contract['CategoriaContratoId'] ?? '') == $cat['Id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($cat['Descricao']); ?>
+                                    <?php echo htmlspecialchars($cat['Descricao'] ?? ''); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -225,7 +225,7 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                             <option value="">Selecione...</option>
                             <?php foreach($fontes as $f): ?>
                                 <option value="<?php echo $f['IdFonte']; ?>" <?php echo ($contract['FonteRecursosId'] ?? '') == $f['IdFonte'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($f['NomeFonte']); ?>
+                                    <?php echo htmlspecialchars($f['NomeFonte'] ?? ''); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -241,7 +241,7 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                             <option value="">Selecione...</option>
                             <?php foreach($modalidades as $m): ?>
                                 <option value="<?php echo $m['Id']; ?>" <?php echo ($contract['ModalidadeId'] ?? '') == $m['Id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($m['Descricao']); ?>
+                                    <?php echo htmlspecialchars($m['Descricao'] ?? ''); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

@@ -115,7 +115,7 @@ try {
                     <label class="label"><span class="label-text font-semibold">Pesquisar</span></label>
                     <div class="join w-full">
                         <input type="text" name="search" placeholder="Número, objeto ou fornecedor..." 
-                               class="input input-bordered join-item w-full" value="<?php echo htmlspecialchars($search); ?>" />
+                               class="input input-bordered join-item w-full" value="<?php echo htmlspecialchars($search ?? ''); ?>" />
                         <button type="submit" class="btn btn-primary join-item">
                             <i class="ph ph-magnifying-glass text-xl"></i>
                         </button>
@@ -130,7 +130,7 @@ try {
                         <option value="expired" <?php echo $status === 'expired' ? 'selected' : ''; ?>>Vencidos</option>
                         <option value="expiring" <?php echo $status === 'expiring' ? 'selected' : ''; ?>>Filtrar por Vencimento</option>
                     </select>
-                    <input type="hidden" name="days" value="<?php echo htmlspecialchars($days); ?>">
+                    <input type="hidden" name="days" value="<?php echo htmlspecialchars($days ?? ''); ?>">
                 </div>
 
                 <div class="flex gap-2 mb-2 md:mb-0">
@@ -166,7 +166,7 @@ try {
 
         <?php if (!empty($search)): ?>
             <div class="badge badge-primary badge-outline gap-2 py-3 px-4">
-                <i class="ph ph-magnifying-glass"></i> Termo: "<?php echo htmlspecialchars($search); ?>"
+                <i class="ph ph-magnifying-glass"></i> Termo: "<?php echo htmlspecialchars($search ?? ''); ?>"
             </div>
         <?php endif; ?>
 
@@ -219,14 +219,14 @@ try {
                         <td class="font-bold text-primary">
                             <?php echo $c['SeqContrato'] . '/' . $c['AnoContrato']; ?>
                         </td>
-                        <td class="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title="<?php echo htmlspecialchars($c['Objeto']); ?>">
-                            <?php echo htmlspecialchars($c['Objeto']); ?>
+                        <td class="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title="<?php echo htmlspecialchars($c['Objeto'] ?? ''); ?>">
+                            <?php echo htmlspecialchars($c['Objeto'] ?? ''); ?>
                         </td>
                         <td class="text-sm">
                             <div class="font-medium"><?php echo htmlspecialchars($c['PrestadorNome'] ?? 'N/A'); ?></div>
                             <div class="text-[10px] flex flex-col gap-1 mt-1 opacity-70">
                                 <?php if (!empty($c['ModalidadeNome'])): ?>
-                                    <span class="flex items-center gap-1"><i class="ph ph-tag"></i> <?php echo htmlspecialchars($c['ModalidadeNome']); ?> (<?php echo htmlspecialchars($c['NumeroModalidade'] ?? 'S/N'); ?>)</span>
+                                    <span class="flex items-center gap-1"><i class="ph ph-tag"></i> <?php echo htmlspecialchars($c['ModalidadeNome'] ?? ''); ?> (<?php echo htmlspecialchars($c['NumeroModalidade'] ?? 'S/N'); ?>)</span>
                                 <?php endif; ?>
                                 <?php if (!empty($c['NProcesso'])): ?>
                                     <span class="flex items-center gap-1"><i class="ph ph-stack"></i> Proc: <?php echo $c['NProcesso']; ?></span>

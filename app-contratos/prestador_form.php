@@ -174,14 +174,14 @@ if ($id) {
                                                     </select>
                                                 </div>
                                                 <div class="form-control flex-[2]">
-                                                    <input type="text" name="contato_nome[]" class="input input-bordered input-sm w-full" value="<?php echo htmlspecialchars($c['Nome']); ?>">
+                                                    <input type="text" name="contato_nome[]" class="input input-bordered input-sm w-full" value="<?php echo htmlspecialchars($c['Nome'] ?? ''); ?>">
                                                 </div>
                                             </div>
                                             <div class="form-control">
-                                                <input type="email" name="contato_email[]" class="input input-bordered input-sm w-full" value="<?php echo htmlspecialchars($c['Email']); ?>">
+                                                <input type="email" name="contato_email[]" class="input input-bordered input-sm w-full" value="<?php echo htmlspecialchars($c['Email'] ?? ''); ?>">
                                             </div>
                                             <div class="form-control">
-                                                <input type="text" name="contato_tel[]" class="input input-bordered input-sm w-full tel-mask" value="<?php echo htmlspecialchars($c['Telefone']); ?>">
+                                                <input type="text" name="contato_tel[]" class="input input-bordered input-sm w-full tel-mask" value="<?php echo htmlspecialchars($c['Telefone'] ?? ''); ?>">
                                             </div>
                                         </div>
                                     </div>

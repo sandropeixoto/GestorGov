@@ -115,12 +115,12 @@ try {
                                 <div class="badge <?php echo $p['Tipo'] == 'PJ' ? 'badge-primary' : 'badge-secondary'; ?> badge-outline font-bold text-[10px]"><?php echo $p['Tipo']; ?></div>
                             </td>
                             <td>
-                                <div class="font-bold text-base-content"><?php echo htmlspecialchars($p['Nome']); ?></div>
+                                <div class="font-bold text-base-content"><?php echo htmlspecialchars($p['Nome'] ?? ''); ?></div>
                                 <div class="text-[10px] opacity-50"><?php echo htmlspecialchars($p['Email'] ?? ''); ?></div>
                             </td>
-                            <td class="text-sm font-mono"><?php echo htmlspecialchars($p['CNPJ']); ?></td>
+                            <td class="text-sm font-mono"><?php echo htmlspecialchars($p['CNPJ'] ?? ''); ?></td>
                             <td>
-                                <div class="text-sm"><?php echo htmlspecialchars($p['Cidade']) . ' - ' . htmlspecialchars($p['UF']); ?></div>
+                                <div class="text-sm"><?php echo htmlspecialchars($p['Cidade'] ?? '') . ' - ' . htmlspecialchars($p['UF'] ?? ''); ?></div>
                                 <div class="text-[10px] opacity-50 italic"><?php echo htmlspecialchars($p['Bairro'] ?? ''); ?></div>
                             </td>
                             <td class="text-right">
@@ -132,7 +132,7 @@ try {
                                     <?php endif; ?>
 
                                     <?php if (CONTRATOS_GESTOR): ?>
-                                    <button onclick="confirmDelete(<?php echo $p['Id']; ?>, '<?php echo htmlspecialchars($p['Nome']); ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir">
+                                    <button onclick="confirmDelete(<?php echo $p['Id']; ?>, '<?php echo htmlspecialchars($p['Nome'] ?? ''); ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir">
                                         <i class="ph ph-trash text-lg"></i>
                                     </button>
                                     <?php endif; ?>

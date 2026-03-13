@@ -78,7 +78,7 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                 <i class="ph ph-arrow-left text-2xl"></i>
             </a>
             <div>
-                <h2 class="text-3xl font-bold">Contrato <?php echo $contract['SeqContrato'] . '/' . $contract['AnoContrato']; ?></h2>
+                <h2 class="text-3xl font-bold">Contrato <?php echo ($contract['SeqContrato'] ?? '') . '/' . ($contract['AnoContrato'] ?? ''); ?></h2>
                 <div class="flex items-center gap-2 mt-1">
                     <?php if ($is_expired): ?>
                         <span class="badge badge-error gap-1"><i class="ph ph-x-circle"></i> Vencido</span>
@@ -87,7 +87,7 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                     <?php else: ?>
                         <span class="badge badge-success text-white gap-1"><i class="ph ph-check-circle"></i> Vigente</span>
                     <?php endif; ?>
-                    <span class="text-base-content/50 text-sm">• Fornecedor: <?php echo htmlspecialchars($contract['PrestadorNome']); ?></span>
+                    <span class="text-base-content/50 text-sm">• Fornecedor: <?php echo htmlspecialchars($contract['PrestadorNome'] ?? ''); ?></span>
                 </div>
             </div>
         </div>
@@ -96,7 +96,7 @@ $is_warning = (!$is_expired && $diff->days <= 30);
             <a href="contract_form.php?id=<?php echo $id; ?>" class="btn btn-outline btn-info gap-2">
                 <i class="ph ph-pencil-simple"></i> Editar Contrato
             </a>
-            <button onclick="confirmDelete(<?php echo $id; ?>, '<?php echo $contract['SeqContrato'] . '/' . $contract['AnoContrato']; ?>')" class="btn btn-outline btn-error gap-2">
+            <button onclick="confirmDelete(<?php echo $id; ?>, '<?php echo ($contract['SeqContrato'] ?? '') . '/' . ($contract['AnoContrato'] ?? ''); ?>')" class="btn btn-outline btn-error gap-2">
                 <i class="ph ph-trash"></i> Excluir
             </button>
         </div>
@@ -111,18 +111,18 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                 <div class="card-body">
                     <h3 class="font-bold text-lg border-b pb-2 mb-4">Resumo do Objeto</h3>
                     <p class="text-base-content/80 leading-relaxed italic">
-                        "<?php echo nl2br(htmlspecialchars($contract['Objeto'])); ?>"
+                        "<?php echo nl2br(htmlspecialchars($contract['Objeto'] ?? '')); ?>"
                     </p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                         <div class="stat p-0">
                             <div class="stat-title text-xs uppercase font-bold">Vigência Efetiva</div>
-                            <div class="stat-value text-2xl text-primary"><?php echo date('d/m/Y', strtotime($contract['VigenciaEfetiva'])); ?></div>
-                            <div class="stat-desc font-medium">Início: <?php echo date('d/m/Y', strtotime($contract['VigenciaInicio'])); ?></div>
+                            <div class="stat-value text-2xl text-primary"><?php echo isset($contract['VigenciaEfetiva']) ? date('d/m/Y', strtotime($contract['VigenciaEfetiva'])) : 'N/A'; ?></div>
+                            <div class="stat-desc font-medium">Início: <?php echo isset($contract['VigenciaInicio']) ? date('d/m/Y', strtotime($contract['VigenciaInicio'])) : 'N/A'; ?></div>
                         </div>
                         <div class="stat p-0">
                             <div class="stat-title text-xs uppercase font-bold">Valor Mensal Original</div>
-                            <div class="stat-value text-2xl">R$ <?php echo number_format($contract['ValorMensalContrato'], 2, ',', '.'); ?></div>
+                            <div class="stat-value text-2xl">R$ <?php echo number_format($contract['ValorMensalContrato'] ?? 0, 2, ',', '.'); ?></div>
                         </div>
                         <div class="stat p-0">
                             <div class="stat-title text-xs uppercase font-bold text-secondary">Valor Total Acumulado</div>
@@ -184,11 +184,11 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                         <tbody>
                             <?php foreach ($terms as $t): ?>
                                 <tr class="hover group">
-                                    <td><span class="badge badge-outline badge-sm uppercase font-bold text-[10px]"><?php echo htmlspecialchars($t['TipoNome']); ?></span></td>
-                                    <td class="font-bold"><?php echo $t['SeqContrato']; ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($t['DataAssinatura'])); ?></td>
-                                    <td class="text-primary font-medium"><?php echo date('d/m/Y', strtotime($t['VigenciaFim'])); ?></td>
-                                    <td class="text-right font-semibold">R$ <?php echo number_format($t['ValorGlobalContrato'], 2, ',', '.'); ?></td>
+                                    <td><span class="badge badge-outline badge-sm uppercase font-bold text-[10px]"><?php echo htmlspecialchars($t['TipoNome'] ?? ''); ?></span></td>
+                                    <td class="font-bold"><?php echo htmlspecialchars($t['SeqContrato'] ?? ''); ?></td>
+                                    <td><?php echo isset($t['DataAssinatura']) ? date('d/m/Y', strtotime($t['DataAssinatura'])) : 'N/A'; ?></td>
+                                    <td class="text-primary font-medium"><?php echo isset($t['VigenciaFim']) ? date('d/m/Y', strtotime($t['VigenciaFim'])) : 'N/A'; ?></td>
+                                    <td class="text-right font-semibold">R$ <?php echo number_format($t['ValorGlobalContrato'] ?? 0, 2, ',', '.'); ?></td>
                                     <td class="text-center">
                                         <div class="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <?php if (CONTRATOS_CONSULTOR): ?>
@@ -196,7 +196,7 @@ $is_warning = (!$is_expired && $diff->days <= 30);
                                             <?php endif; ?>
 
                                             <?php if (CONTRATOS_GESTOR): ?>
-                                            <button onclick="confirmDelete(<?php echo $t['Id']; ?>, '<?php echo $t['SeqContrato'] . '/' . $t['AnoContrato']; ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir"><i class="ph ph-trash text-lg"></i></button>
+                                            <button onclick="confirmDelete(<?php echo $t['Id']; ?>, '<?php echo ($t['SeqContrato'] ?? '') . '/' . ($t['AnoContrato'] ?? ''); ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir"><i class="ph ph-trash text-lg"></i></button>
                                             <?php endif; ?>
 
                                             <?php if (!CONTRATOS_CONSULTOR): ?>
@@ -222,8 +222,8 @@ $is_warning = (!$is_expired && $diff->days <= 30);
             <div class="card bg-base-100 shadow-xl border border-base-200">
                 <div class="card-body">
                     <h3 class="card-title text-sm uppercase opacity-50"><i class="ph ph-buildings"></i> Dados do Fornecedor</h3>
-                    <p class="font-bold text-lg mt-2"><?php echo htmlspecialchars($contract['PrestadorNome']); ?></p>
-                    <p class="text-sm font-mono opacity-70"><?php echo htmlspecialchars($contract['PrestadorCNPJ']); ?></p>
+                    <p class="font-bold text-lg mt-2"><?php echo htmlspecialchars($contract['PrestadorNome'] ?? ''); ?></p>
+                    <p class="text-sm font-mono opacity-70"><?php echo htmlspecialchars($contract['PrestadorCNPJ'] ?? ''); ?></p>
                     
                     <div class="divider my-2"></div>
                     
