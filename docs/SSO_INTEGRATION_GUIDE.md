@@ -14,49 +14,78 @@ Ambos os sistemas devem compartilhar a mesma **Chave Secreta**.
 - **Chave Atual:** `GestorGov_Secure_Integration_Token_2026!`
 - **Algoritmo:** `HMAC-SHA256`
 
-## 3. Implementação da Recepção (PHP)
+## 3. Implementação da Recepção (Exemplos)
 
-Crie um arquivo `auth_sso.php` no seu projeto para receber o usuário:
+### PHP (Simples)
+Crie um arquivo `auth_sso.php` no seu projeto:
 
 ```php
 <?php
-// 1. Defina a chave secreta (deve ser a mesma do Portal)
 define('SSO_SECRET_KEY', 'GestorGov_Secure_Integration_Token_2026!');
-
-// 2. Capture os dados da URL
 $payload_base64 = $_GET['sso_payload'] ?? null;
 $signature_received = $_GET['sso_sig'] ?? null;
 
-if (!$payload_base64 || !$signature_received) {
-    die("Acesso negado: Token SSO ausente.");
-}
+if (!$payload_base64 || !$signature_received) die("Acesso negado: Token SSO ausente.");
 
-// 3. Valide a assinatura HMAC-SHA256
+// Validação
 $expected_signature = hash_hmac('sha256', $payload_base64, SSO_SECRET_KEY);
+if ($signature_received !== $expected_signature) die("Acesso negado: Assinatura inválida.");
 
-if ($signature_received !== $expected_signature) {
-    die("Acesso negado: Assinatura inválida.");
-}
+$user_data = json_decode(base64_decode($payload_base64), true);
+if (time() > $user_data['exp']) die("Acesso negado: Token expirado.");
 
-// 4. Decodifique o Payload
-$payload_json = base64_decode($payload_base64);
-$user_data = json_decode($payload_json, true);
-
-// 5. Verifique a expiração (iat = Issued At, exp = Expires At)
-if (time() > $user_data['exp']) {
-    die("Acesso negado: Token expirado. Tente acessar novamente via Portal.");
-}
-
-// 6. Logique o usuário no seu sistema
+// Sessão Local
 session_start();
-$_SESSION['usuario_id']     = $user_data['user_id'];
-$_SESSION['usuario_nome']   = $user_data['user_name'];
-$_SESSION['usuario_email']  = $user_data['user_email'];
-$_SESSION['usuario_perfil'] = $user_data['user_level'];
+$_SESSION['usuario_email'] = $user_data['user_email'];
+header("Location: dashboard.php");
+```
 
-// 7. Redirecione para a Home do seu módulo
-header("Location: index.php");
-exit;
+### Node.js (Express)
+Ideal para backends que servem aplicações **React / Vue / Angular**:
+
+```javascript
+const crypto = require('crypto');
+
+app.get('/auth/sso', (req, res) => {
+    const { sso_payload, sso_sig } = req.query;
+    const secret = 'GestorGov_Secure_Integration_Token_2026!';
+
+    // 1. Validar Assinatura
+    const expectedSig = crypto.createHmac('sha256', secret)
+                              .update(sso_payload)
+                              .digest('hex');
+
+    if (sso_sig !== expectedSig) return res.status(403).send('Assinatura Inválida');
+
+    // 2. Decodificar e Validar Expiração
+    const userData = JSON.parse(Buffer.from(sso_payload, 'base64').toString());
+    if (Date.now() / 1000 > userData.exp) return res.status(403).send('Token Expirado');
+
+    // 3. Login no seu sistema (ex: JWT próprio)
+    req.session.user = userData;
+    res.redirect('/dashboard');
+});
+```
+
+### Python (FastAPI / Flask)
+```python
+import hmac, hashlib, base64, json, time
+
+@app.get("/auth/sso")
+def sso_login(sso_payload: str, sso_sig: str):
+    secret = "GestorGov_Secure_Integration_Token_2026!"
+    
+    # 1. Validar HMAC
+    expected_sig = hmac.new(secret.encode(), sso_payload.encode(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sso_sig, expected_sig):
+        return {"error": "Invalid signature"}
+
+    # 2. Decodificar
+    user_data = json.loads(base64.b64decode(sso_payload).decode())
+    if time.time() > user_data['exp']:
+        return {"error": "Token expired"}
+
+    return {"status": "authenticated", "user": user_data}
 ```
 
 ## 4. Estrutura do Payload (JSON)
