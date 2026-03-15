@@ -1,5 +1,8 @@
 <?php
 // app-contratos/auth_module.php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once 'config.php';
 
 // Se por algum motivo dados críticos não estiverem na sessão, tenta recuperar pelo e-mail

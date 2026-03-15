@@ -35,15 +35,19 @@ if (!isset($_SESSION['user_email'])) {
                 }
             } else {
                 setcookie('gestorgov_session', '', time() - 3600, "/");
-                header("Location: index.php?error=expired");
+                // Determina o caminho para a raiz (index.php)
+                $redirect_root = (basename(dirname($_SERVER['PHP_SELF'])) === 'app-contratos') ? '../index.php' : 'index.php';
+                header("Location: $redirect_root?error=expired");
                 exit;
             }
         } catch (PDOException $e) {
-            header("Location: index.php?error=db");
+            $redirect_root = (basename(dirname($_SERVER['PHP_SELF'])) === 'app-contratos') ? '../index.php' : 'index.php';
+            header("Location: $redirect_root?error=db");
             exit;
         }
     } else {
-        header("Location: index.php?error=unauthorized");
+        $redirect_root = (basename(dirname($_SERVER['PHP_SELF'])) === 'app-contratos') ? '../index.php' : 'index.php';
+        header("Location: $redirect_root?error=unauthorized");
         exit;
     }
 }

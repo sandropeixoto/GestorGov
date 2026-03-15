@@ -1,6 +1,6 @@
 <?php
 // app-contratos/contratos_anexos_action.php
-require_once 'config.php';
+require_once __DIR__ . '/../auth_check.php';
 require_once 'auth_module.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
