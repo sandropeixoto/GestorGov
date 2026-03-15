@@ -3,6 +3,12 @@
 require_once 'auth_check.php';
 require_once 'config.php';
 
+// Segurança: Apenas Administradores podem gerenciar o launcher
+if (($_SESSION['user_level'] ?? '') !== 'Administrador') {
+    header("Location: home.php?error=unauthorized");
+    exit;
+}
+
 $id = $_GET['id'] ?? null;
 $module = null;
 

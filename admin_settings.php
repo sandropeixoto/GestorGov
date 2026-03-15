@@ -1,6 +1,12 @@
 <?php
 // admin_settings.php na raiz
 require_once 'auth_check.php';
+
+// Segurança: Apenas Administradores podem acessar as configurações globais
+if (($_SESSION['user_level'] ?? '') !== 'Administrador') {
+    header("Location: home.php?error=unauthorized");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="corporate">
