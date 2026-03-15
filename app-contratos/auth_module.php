@@ -1,3 +1,4 @@
+<?php
 // app-contratos/auth_module.php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
