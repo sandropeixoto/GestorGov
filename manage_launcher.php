@@ -154,8 +154,8 @@ try {
                                     <td class="text-xs">
                                         <div class="opacity-60"><?php echo htmlspecialchars($m['url']); ?></div>
                                         <div class="flex gap-1 mt-1">
-                                            <?php if ($m['is_external']): ?> <span class="badge badge-outline badge-xs">EXTERNO (SSO)</span> <?php endif; ?>
-                                            <?php if ($m['open_in_new_tab']): ?> <span class="badge badge-primary badge-xs"><i class="ph ph-arrow-square-out mr-1"></i> NOVA ABA</span> <?php endif; ?>
+                                            <?php if ($m['is_external'] ?? 0): ?> <span class="badge badge-outline badge-xs">EXTERNO (SSO)</span> <?php endif; ?>
+                                            <?php if ($m['open_in_new_tab'] ?? 0): ?> <span class="badge badge-primary badge-xs"><i class="ph ph-arrow-square-out mr-1"></i> NOVA ABA</span> <?php endif; ?>
                                         </div>
                                     </td>
                                     <td class="text-right">
