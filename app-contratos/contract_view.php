@@ -75,6 +75,11 @@ try {
     $stmt_anexos->execute([$id]);
     $attachments = $stmt_anexos->fetchAll();
 
+    // Busca Fiscais Setoriais
+    $stmt_fs = $pdo->prepare("SELECT * FROM contratos_fiscais_setoriais WHERE contrato_id = ? ORDER BY id ASC");
+    $stmt_fs->execute([$id]);
+    $fiscais_setoriais = $stmt_fs->fetchAll();
+
 } catch (PDOException $e) {
     die("Erro ao carregar dossiê: " . $e->getMessage());
 }
@@ -195,9 +200,9 @@ $error_map = [
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                                 <div class="space-y-3">
                                     <p class="text-sm"><strong>Diretoria:</strong> <?php echo htmlspecialchars($contract['DiretoriaSigla'] ?? 'Não informada'); ?></p>
-                                    <p class="text-sm"><strong>Coordenação:</strong> <?php echo htmlspecialchars($contract['CoordenacaoNome'] ?? 'Não informada'); ?></p>
+                                    <p class="text-sm"><strong>Coordenador da área:</strong> <?php echo htmlspecialchars($contract['CoordenacaoNome'] ?? 'Não informada'); ?></p>
                                     <p class="text-sm"><strong>Fiscal Titular:</strong> <?php echo htmlspecialchars($contract['FiscalContrato'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($contract['EmailFiscal'] ?? '-'); ?>)</p>
-                                    <p class="text-sm"><strong>Fiscal Substituto:</strong> <?php echo htmlspecialchars($contract['FiscalSubstituto'] ?? 'N/A'); ?></p>
+                                    <p class="text-sm"><strong>Fiscal Substituto:</strong> <?php echo htmlspecialchars($contract['FiscalSubstituto'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($contract['EmailFiscalSubstituto'] ?? '-'); ?>)</p>
                                 </div>
                                 <div class="space-y-3">
                                     <p class="text-sm"><strong>Modalidade:</strong> <?php echo htmlspecialchars($contract['ModalidadeNome'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($contract['NumeroModalidade'] ?? '-'); ?>)</p>
@@ -206,6 +211,25 @@ $error_map = [
                                     <p class="text-sm"><strong>Categoria:</strong> <?php echo htmlspecialchars($contract['CategoriaNome'] ?? 'N/A'); ?></p>
                                 </div>
                             </div>
+
+                            <?php if (!empty($fiscais_setoriais)): ?>
+                            <div class="mt-6 border-t border-base-300 pt-4">
+                                <h4 class="text-xs font-bold uppercase opacity-50 mb-3 flex items-center gap-2">
+                                    <i class="ph ph-users-three"></i> Fiscais Setoriais Vinculados
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <?php foreach ($fiscais_setoriais as $fs): ?>
+                                        <div class="bg-white/50 p-3 rounded-lg border border-base-300 flex items-center justify-between">
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-bold"><?php echo htmlspecialchars($fs['nome']); ?></span>
+                                                <span class="text-[10px] opacity-60 font-mono"><?php echo htmlspecialchars($fs['email'] ?? '-'); ?></span>
+                                            </div>
+                                            <i class="ph ph-user-circle text-primary text-xl opacity-30"></i>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

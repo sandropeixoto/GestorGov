@@ -20,6 +20,8 @@ if ($action === 'delete' && !CONTRATOS_GESTOR) {
 $id = $_POST['id'] ?? null;
 
 try {
+    $pdo->beginTransaction();
+
     if ($action === 'create' || $action === 'update') {
         $paiId = $_POST['PaiId'] ?? 0;
         $tipoDocId = ($paiId == 0) ? 1 : ($_POST['TipoDocumentoId'] ?? 2); // 1 = Contrato, 2 = Termo Aditivo (fallback)
@@ -44,10 +46,12 @@ try {
             'ModalidadeId' => $_POST['ModalidadeId'] ?: null,
             'NumeroModalidade' => $_POST['NumeroModalidade'] ?? null,
             'DiretoriaId' => $_POST['DiretoriaId'] ?: null,
-            'CoordenacaoId' => $_POST['CoordenacaoId'] ?: null,
+            'CoordenacaoId' => $_POST['CoordenacaoId'] ?? null,
             'CategoriaContratoId' => $_POST['CategoriaContratoId'] ?: null,
             'FonteRecursosId' => $_POST['FonteRecursosId'] ?: null
         ];
+
+        $contrato_final_id = $id;
 
         if ($action === 'create') {
             $cols = implode(", ", array_keys($data));
@@ -55,9 +59,9 @@ try {
             $sql = "INSERT INTO Contratos ($cols) VALUES ($placeholders)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute($data);
-            $new_id = $pdo->lastInsertId();
+            $contrato_final_id = $pdo->lastInsertId();
             
-            logSistema($pdo, 'Contratos', 'Create', 'Contratos', $new_id, $data);
+            logSistema($pdo, 'Contratos', 'Create', 'Contratos', $contrato_final_id, $data);
         } else {
             $sets = [];
             foreach ($data as $key => $val) {
@@ -70,6 +74,21 @@ try {
             
             logSistema($pdo, 'Contratos', 'Update', 'Contratos', $id, $data);
         }
+
+        // Sincronização de Fiscais Setoriais
+        $stmt_del = $pdo->prepare("DELETE FROM contratos_fiscais_setoriais WHERE contrato_id = ?");
+        $stmt_del->execute([$contrato_final_id]);
+
+        if (isset($_POST['fs_nome']) && is_array($_POST['fs_nome'])) {
+            foreach ($_POST['fs_nome'] as $k => $nome) {
+                if (!empty(trim($nome))) {
+                    $stmt_fs = $pdo->prepare("INSERT INTO contratos_fiscais_setoriais (contrato_id, nome, email) VALUES (?, ?, ?)");
+                    $stmt_fs->execute([$contrato_final_id, $nome, $_POST['fs_email'][$k] ?? null]);
+                }
+            }
+        }
+
+        $pdo->commit();
         
         $redirect = $_POST['redirect'] ?? "contratos.php?msg=success";
         header("Location: $redirect");
@@ -81,6 +100,7 @@ try {
         
         logSistema($pdo, 'Contratos', 'Delete', 'Contratos', $id);
         
+        $pdo->commit();
         $redirect = $_POST['redirect'] ?? "contratos.php?msg=deleted";
         header("Location: $redirect");
         exit;

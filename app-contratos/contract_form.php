@@ -11,6 +11,7 @@ if (!CONTRATOS_CONSULTOR) {
 $id = $_GET['id'] ?? null;
 $contract = null;
 $prestador_atual = null;
+$fiscais_setoriais = [];
 
 if ($id) {
     $stmt = $pdo->prepare("SELECT c.*, p.CNPJ as PrestadorDoc, p.Nome as PrestadorNome 
@@ -19,6 +20,10 @@ if ($id) {
                            WHERE c.Id = ?");
     $stmt->execute([$id]);
     $contract = $stmt->fetch();
+
+    $stmt_fs = $pdo->prepare("SELECT * FROM contratos_fiscais_setoriais WHERE contrato_id = ? ORDER BY id ASC");
+    $stmt_fs->execute([$id]);
+    $fiscais_setoriais = $stmt_fs->fetchAll();
 }
 
 // Fetch Categories for dropdown
@@ -156,7 +161,7 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                 <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
                     <i class="ph ph-user-focus text-primary"></i> Fiscalização e Gestão
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="form-control">
                         <label class="label"><span class="label-text font-semibold">Diretoria Resp.</span></label>
                         <select name="DiretoriaId" class="select select-bordered w-full">
@@ -169,7 +174,7 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                         </select>
                     </div>
                     <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Coordenação</span></label>
+                        <label class="label"><span class="label-text font-semibold">Coordenador da área</span></label>
                         <select name="CoordenacaoId" class="select select-bordered w-full">
                             <option value="">Selecione...</option>
                             <?php foreach($coordenacoes as $c): ?>
@@ -198,6 +203,38 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                         <label class="label"><span class="label-text font-semibold">E-mail do Substituto</span></label>
                         <input type="email" name="EmailFiscalSubstituto" class="input input-bordered w-full" 
                                value="<?php echo htmlspecialchars($contract['EmailFiscalSubstituto'] ?? ''); ?>">
+                    </div>
+                </div>
+
+                <!-- Fiscais Setoriais -->
+                <div class="mt-8 p-6 bg-base-200/50 rounded-2xl border border-base-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-bold uppercase opacity-60 flex items-center gap-2">
+                            <i class="ph ph-users-three"></i> Fiscais Setoriais
+                        </h4>
+                        <button type="button" onclick="addFiscalSetorial()" class="btn btn-xs btn-primary gap-1">
+                            <i class="ph ph-plus-circle"></i> Adicionar Fiscal
+                        </button>
+                    </div>
+                    
+                    <div id="fiscais-setoriais-container" class="space-y-3">
+                        <?php foreach ($fiscais_setoriais as $fs): ?>
+                            <div class="flex flex-col md:flex-row gap-3 bg-white p-3 rounded-lg shadow-sm border border-base-200 relative">
+                                <button type="button" onclick="this.parentElement.remove()" class="btn btn-circle btn-xs btn-error absolute -top-2 -right-2 text-white shadow-md"><i class="ph ph-x"></i></button>
+                                <div class="form-control flex-1">
+                                    <input type="text" name="fs_nome[]" placeholder="Nome do Fiscal" class="input input-bordered input-sm w-full" value="<?php echo htmlspecialchars($fs['nome']); ?>" required>
+                                </div>
+                                <div class="form-control flex-1">
+                                    <input type="email" name="fs_email[]" placeholder="E-mail" class="input input-bordered input-sm w-full" value="<?php echo htmlspecialchars($fs['email']); ?>">
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        
+                        <?php if (empty($fiscais_setoriais)): ?>
+                            <div id="no-fiscais-msg" class="text-center py-4 opacity-40 italic text-xs">
+                                Nenhum fiscal setorial adicionado.
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </section>
@@ -295,6 +332,25 @@ function buscarPrestador(doc) {
             loading.classList.add('hidden');
             console.error('Erro:', error);
         });
+}
+
+function addFiscalSetorial() {
+    const container = document.getElementById('fiscais-setoriais-container');
+    const noMsg = document.getElementById('no-fiscais-msg');
+    if(noMsg) noMsg.remove();
+
+    const div = document.createElement('div');
+    div.className = 'flex flex-col md:flex-row gap-3 bg-white p-3 rounded-lg shadow-sm border border-base-200 relative';
+    div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" class="btn btn-circle btn-xs btn-error absolute -top-2 -right-2 text-white shadow-md"><i class="ph ph-x"></i></button>
+        <div class="form-control flex-1">
+            <input type="text" name="fs_nome[]" placeholder="Nome do Fiscal" class="input input-bordered input-sm w-full" required>
+        </div>
+        <div class="form-control flex-1">
+            <input type="email" name="fs_email[]" placeholder="E-mail" class="input input-bordered input-sm w-full">
+        </div>
+    `;
+    container.appendChild(div);
 }
 </script>
 
