@@ -42,6 +42,8 @@ try {
             $stmt = $pdo->prepare("INSERT INTO Prestador ($cols) VALUES ($placeholders)");
             $stmt->execute($data);
             $prestadorId = $pdo->lastInsertId();
+
+            logSistema($pdo, 'Contratos', 'Create', 'Prestador', $prestadorId, $data);
         } else {
             $sets = [];
             foreach ($data as $key => $val) {
@@ -51,6 +53,8 @@ try {
             $data['id'] = $id;
             $stmt->execute($data);
             $prestadorId = $id;
+
+            logSistema($pdo, 'Contratos', 'Update', 'Prestador', $prestadorId, $data);
         }
 
         // Salvar Contatos (1-N)
@@ -89,6 +93,8 @@ try {
         // 2. Excluir (a exclusão de contatos é automática via ON DELETE CASCADE no banco)
         $stmt = $pdo->prepare("DELETE FROM Prestador WHERE Id = ?");
         $stmt->execute([$id]);
+        
+        logSistema($pdo, 'Contratos', 'Delete', 'Prestador', $id);
         
         header("Location: prestadores.php?msg=success");
         exit;

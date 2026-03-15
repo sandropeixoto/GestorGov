@@ -90,7 +90,13 @@ if ($action === 'upload') {
                     $descricao,
                     $_SESSION['user_id']
                 ]);
+                $anexo_id = $pdo->lastInsertId();
                 $success_count++;
+
+                logSistema($pdo, 'Contratos', 'Upload', 'contratos_anexos', $anexo_id, [
+                    'original_name' => $original_name,
+                    'contrato_id' => $contrato_id
+                ]);
             } catch (PDOException $e) {
                 $error_messages[] = "Erro ao salvar no banco: " . $e->getMessage();
             }
@@ -127,6 +133,8 @@ if ($action === 'delete') {
 
         $stmt = $pdo->prepare("DELETE FROM contratos_anexos WHERE id = ?");
         $stmt->execute([$anexo_id]);
+
+        logSistema($pdo, 'Contratos', 'Delete', 'contratos_anexos', $anexo_id);
 
         header("Location: contract_view.php?id=$contrato_id&success_delete=1");
     } catch (PDOException $e) {

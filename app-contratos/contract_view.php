@@ -126,16 +126,19 @@ $success_delete_anexo = $_GET['success_delete'] ?? null;
                 </div>
             </div>
         </div>
-        <?php if (in_array($_SESSION['user_level'] ?? '', ['Administrador', 'Gestor'])): ?>
         <div class="flex gap-2">
+            <?php if (CONTRATOS_CONSULTOR): ?>
             <a href="contract_form.php?id=<?php echo $id; ?>" class="btn btn-outline btn-info gap-2">
                 <i class="ph ph-pencil-simple"></i> Editar Contrato
             </a>
+            <?php endif; ?>
+
+            <?php if (CONTRATOS_GESTOR): ?>
             <button onclick="confirmDelete(<?php echo $id; ?>, '<?php echo ($contract['SeqContrato'] ?? '') . '/' . ($contract['AnoContrato'] ?? ''); ?>')" class="btn btn-outline btn-error gap-2">
                 <i class="ph ph-trash"></i> Excluir
             </button>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

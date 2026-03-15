@@ -42,6 +42,8 @@ try {
         $_SESSION['user_name'] = $user_data['nome'] ?? explode('@', $result['email'])[0];
         $_SESSION['user_level'] = $user_data['nivel'] ?? 'Consultor'; 
         
+        logSistema($pdo, 'Portal', 'Login Success', 'usuarios', $_SESSION['user_id']);
+        
         // Define Cookie de 30 dias para persistência (Segurança: HttpOnly)
         setcookie('gestorgov_session', $token, time() + (30 * 24 * 60 * 60), "/", "", false, true);
 

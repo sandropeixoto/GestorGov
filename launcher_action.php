@@ -28,6 +28,9 @@ try {
             $placeholders = ":" . implode(", :", array_keys($data));
             $stmt = $pdo->prepare("INSERT INTO launcher_modules ($cols) VALUES ($placeholders)");
             $stmt->execute($data);
+            $new_id = $pdo->lastInsertId();
+            
+            logSistema($pdo, 'Launcher', 'Create Module', 'launcher_modules', $new_id, $data);
         } else {
             $sets = [];
             foreach ($data as $key => $val) {
@@ -36,10 +39,14 @@ try {
             $stmt = $pdo->prepare("UPDATE launcher_modules SET " . implode(", ", $sets) . " WHERE id = :id");
             $data['id'] = $id;
             $stmt->execute($data);
+            
+            logSistema($pdo, 'Launcher', 'Update Module', 'launcher_modules', $id, $data);
         }
     } elseif ($action === 'delete' && $id) {
         $stmt = $pdo->prepare("DELETE FROM launcher_modules WHERE id = ?");
         $stmt->execute([$id]);
+        
+        logSistema($pdo, 'Launcher', 'Delete Module', 'launcher_modules', $id);
     }
 
     header("Location: manage_launcher.php?msg=success");

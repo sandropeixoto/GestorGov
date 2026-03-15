@@ -4,6 +4,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+require_once __DIR__ . '/logger.php';
+
 $host = "192.185.214.25";
 $user = "eventoss_vocegov";
 $pass = "Senh@2025";

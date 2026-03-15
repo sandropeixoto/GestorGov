@@ -26,6 +26,8 @@ try {
     // Salva token no banco usando NOW() do banco para evitar conflito de timezone
     $stmt = $pdo->prepare("INSERT INTO login_tokens (email, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))");
     $stmt->execute([$email, $token]);
+    
+    logSistema($pdo, 'Portal', 'Login Request', 'login_tokens', null, ['email' => $email]);
 
     // Prepara e-mail
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");

@@ -61,7 +61,7 @@ require_once 'auth_check.php';
                 </a>
 
                 <!-- Seção de Logs -->
-                <div class="card bg-white shadow-xl border border-base-200 group hover:border-secondary transition-all">
+                <a href="view_logs.php" class="card bg-white shadow-xl border border-base-200 group hover:border-secondary transition-all cursor-pointer">
                     <div class="card-body">
                         <div class="w-12 h-12 bg-secondary/10 text-secondary rounded-xl flex items-center justify-center mb-4">
                             <i class="ph ph-list-magnifying-glass text-2xl"></i>
@@ -72,7 +72,7 @@ require_once 'auth_check.php';
                             <button class="btn btn-sm btn-ghost text-secondary">Visualizar <i class="ph ph-arrow-right"></i></button>
                         </div>
                     </div>
-                </div>
+                </a>
 
                 <!-- Seção de Parâmetros -->
                 <div class="card bg-white shadow-xl border border-base-200 group hover:border-accent transition-all">

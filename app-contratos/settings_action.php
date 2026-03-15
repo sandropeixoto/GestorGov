@@ -22,6 +22,7 @@ if ($tab === 'permissoes') {
             $valor = isset($_POST['leitura_global']) ? '1' : '0';
             $stmt = $pdo->prepare("UPDATE contratos_configuracoes SET valor = ? WHERE chave = 'acesso_leitura_global'");
             $stmt->execute([$valor]);
+            logSistema($pdo, 'Contratos', 'Toggle Global Read', 'contratos_configuracoes', null, ['valor' => $valor]);
         } 
         elseif ($action === 'update_user_permission') {
             $usuario_id = $_POST['usuario_id'];
@@ -30,9 +31,11 @@ if ($tab === 'permissoes') {
             if (empty($perfil)) {
                 $stmt = $pdo->prepare("DELETE FROM contratos_permissoes WHERE usuario_id = ?");
                 $stmt->execute([$usuario_id]);
+                logSistema($pdo, 'Contratos', 'Remove Permission', 'contratos_permissoes', $usuario_id);
             } else {
                 $stmt = $pdo->prepare("INSERT INTO contratos_permissoes (usuario_id, perfil) VALUES (?, ?) ON DUPLICATE KEY UPDATE perfil = ?");
                 $stmt->execute([$usuario_id, $perfil, $perfil]);
+                logSistema($pdo, 'Contratos', 'Update Permission', 'contratos_permissoes', $usuario_id, ['perfil' => $perfil]);
             }
         }
         header("Location: settings.php?tab=permissoes&msg=success");
@@ -70,6 +73,7 @@ try {
             $placeholders = ":" . implode(", :", array_keys($data));
             $stmt = $pdo->prepare("INSERT INTO $table ($cols) VALUES ($placeholders)");
             $stmt->execute($data);
+            logSistema($pdo, 'Contratos', 'Create Settings', $table, $pdo->lastInsertId(), $data);
         } else {
             $sets = [];
             foreach ($data as $key => $val) {
@@ -78,10 +82,12 @@ try {
             $stmt = $pdo->prepare("UPDATE $table SET " . implode(", ", $sets) . " WHERE $pk = :pk_value");
             $data['pk_value'] = $pk_value;
             $stmt->execute($data);
+            logSistema($pdo, 'Contratos', 'Update Settings', $table, $pk_value, $data);
         }
     } elseif ($action === 'delete' && $pk_value) {
         $stmt = $pdo->prepare("DELETE FROM $table WHERE $pk = ?");
         $stmt->execute([$pk_value]);
+        logSistema($pdo, 'Contratos', 'Delete Settings', $table, $pk_value);
     }
 
     header("Location: settings.php?tab=$tab&msg=success");

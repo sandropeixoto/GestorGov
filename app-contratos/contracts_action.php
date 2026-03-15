@@ -55,6 +55,9 @@ try {
             $sql = "INSERT INTO Contratos ($cols) VALUES ($placeholders)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute($data);
+            $new_id = $pdo->lastInsertId();
+            
+            logSistema($pdo, 'Contratos', 'Create', 'Contratos', $new_id, $data);
         } else {
             $sets = [];
             foreach ($data as $key => $val) {
@@ -64,6 +67,8 @@ try {
             $data['id'] = $id;
             $stmt = $pdo->prepare($sql);
             $stmt->execute($data);
+            
+            logSistema($pdo, 'Contratos', 'Update', 'Contratos', $id, $data);
         }
         
         $redirect = $_POST['redirect'] ?? "contratos.php?msg=success";
@@ -73,6 +78,8 @@ try {
     } elseif ($action === 'delete' && $id) {
         $stmt = $pdo->prepare("DELETE FROM Contratos WHERE Id = ?");
         $stmt->execute([$id]);
+        
+        logSistema($pdo, 'Contratos', 'Delete', 'Contratos', $id);
         
         $redirect = $_POST['redirect'] ?? "contratos.php?msg=deleted";
         header("Location: $redirect");

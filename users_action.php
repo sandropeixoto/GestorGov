@@ -25,6 +25,9 @@ try {
             $placeholders = ":" . implode(", :", array_keys($data));
             $stmt = $pdo->prepare("INSERT INTO usuarios ($cols) VALUES ($placeholders)");
             $stmt->execute($data);
+            $new_id = $pdo->lastInsertId();
+            
+            logSistema($pdo, 'Admin', 'Create User', 'usuarios', $new_id, $data);
         } else {
             $sets = [];
             foreach ($data as $key => $val) {
@@ -33,16 +36,22 @@ try {
             $stmt = $pdo->prepare("UPDATE usuarios SET " . implode(", ", $sets) . " WHERE id = :id");
             $data['id'] = $id;
             $stmt->execute($data);
+            
+            logSistema($pdo, 'Admin', 'Update User', 'usuarios', $id, $data);
         }
     } elseif ($action === 'delete' && $id) {
         $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
         $stmt->execute([$id]);
+        
+        logSistema($pdo, 'Admin', 'Delete User', 'usuarios', $id);
     } elseif ($action === 'send_welcome' && $id) {
         $stmt = $pdo->prepare("SELECT nome, email FROM usuarios WHERE id = ?");
         $stmt->execute([$id]);
         $user = $stmt->fetch();
 
         if ($user) {
+            logSistema($pdo, 'Admin', 'Send Welcome Email', 'usuarios', $id, ['email' => $user['email']]);
+            
             $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
             $host = $_SERVER['HTTP_HOST'];
             $path = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
