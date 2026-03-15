@@ -11,6 +11,10 @@ $user = "eventoss_vocegov";
 $pass = "Senh@2025";
 $db = "eventoss_vocegov";
 
+// Chave Secreta para integração via SSO (Deve ser a mesma em todos os módulos)
+// IMPORTANTE: Em produção, altere esta chave para uma string longa e aleatória.
+define('SSO_SECRET_KEY', 'GestorGov_Secure_Integration_Token_2026!');
+
 try {
     $dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
     $pdo = new PDO($dsn, $user, $pass, [

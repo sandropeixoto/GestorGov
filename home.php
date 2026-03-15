@@ -10,22 +10,9 @@ try {
 }
 
 // Função para gerar URL com token SSO se necessário
-function getModuleUrl($m, $pdo) {
-    if (!$m['is_external']) return $m['url'];
-    
-    // Gera token temporário (válido por 1 minuto para o handoff)
-    $token = bin2hex(random_bytes(16));
-    $expires = date('Y-m-d H:i:s', strtotime('+1 minute'));
-    
-    try {
-        $stmt = $pdo->prepare("INSERT INTO login_tokens (email, token, expires_at) VALUES (?, ?, ?)");
-        $stmt->execute([$_SESSION['user_email'], $token, $expires]);
-        
-        $sep = (strpos($m['url'], '?') === false) ? '?' : '&';
-        return $m['url'] . $sep . "sso_token=" . $token;
-    } catch (Exception $e) {
-        return $m['url'];
-    }
+function getModuleUrl($m) {
+    // Redireciona via handler central para log e geração de token SSO (se externo)
+    return "sso_redirect.php?id=" . $m['id'];
 }
 ?>
 <!DOCTYPE html>
@@ -67,7 +54,7 @@ function getModuleUrl($m, $pdo) {
                 <?php foreach ($modules as $m): ?>
                     <?php if ($m['is_active']): ?>
                         <!-- Módulo Ativo -->
-                        <a href="<?php echo getModuleUrl($m, $pdo); ?>" class="group relative bg-white p-8 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col items-center text-center hover:-translate-y-2 overflow-hidden">
+                        <a href="<?php echo getModuleUrl($m); ?>" class="group relative bg-white p-8 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col items-center text-center hover:-translate-y-2 overflow-hidden">
                             <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div class="w-20 h-20 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                                 <i class="ph <?php echo $m['icon']; ?> text-4xl"></i>
