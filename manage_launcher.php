@@ -94,6 +94,10 @@ try {
                                 <input type="checkbox" name="is_external" value="1" class="checkbox checkbox-xs" <?php echo ($module['is_external'] ?? 0) ? 'checked' : ''; ?>>
                                 <span class="label-text text-xs">Módulo Externo (Gerar Token SSO)</span>
                             </label>
+                            <label class="label cursor-pointer justify-start gap-2">
+                                <input type="checkbox" name="open_in_new_tab" value="1" class="checkbox checkbox-xs checkbox-primary" <?php echo ($module['open_in_new_tab'] ?? 0) ? 'checked' : ''; ?>>
+                                <span class="label-text text-xs font-bold text-primary">Abrir em Nova Aba / Janela</span>
+                            </label>
                         </div>
 
                         <div class="form-control">
@@ -149,7 +153,10 @@ try {
                                     </td>
                                     <td class="text-xs">
                                         <div class="opacity-60"><?php echo htmlspecialchars($m['url']); ?></div>
-                                        <?php if ($m['is_external']): ?> <span class="badge badge-outline badge-xs mt-1">EXTERNO (SSO)</span> <?php endif; ?>
+                                        <div class="flex gap-1 mt-1">
+                                            <?php if ($m['is_external']): ?> <span class="badge badge-outline badge-xs">EXTERNO (SSO)</span> <?php endif; ?>
+                                            <?php if ($m['open_in_new_tab']): ?> <span class="badge badge-primary badge-xs"><i class="ph ph-arrow-square-out mr-1"></i> NOVA ABA</span> <?php endif; ?>
+                                        </div>
                                     </td>
                                     <td class="text-right">
                                         <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

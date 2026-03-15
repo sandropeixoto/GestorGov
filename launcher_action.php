@@ -20,7 +20,8 @@ try {
             'url' => $_POST['url'],
             'display_order' => $_POST['display_order'] ?? 0,
             'is_active' => $_POST['is_active'] ?? 1,
-            'is_external' => isset($_POST['is_external']) ? 1 : 0
+            'is_external' => isset($_POST['is_external']) ? 1 : 0,
+            'open_in_new_tab' => isset($_POST['open_in_new_tab']) ? 1 : 0
         ];
 
         if ($action === 'create') {

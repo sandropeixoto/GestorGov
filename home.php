@@ -54,7 +54,9 @@ function getModuleUrl($m) {
                 <?php foreach ($modules as $m): ?>
                     <?php if ($m['is_active']): ?>
                         <!-- Módulo Ativo -->
-                        <a href="<?php echo getModuleUrl($m); ?>" class="group relative bg-white p-8 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col items-center text-center hover:-translate-y-2 overflow-hidden">
+                        <a href="<?php echo getModuleUrl($m); ?>" 
+                           <?php echo $m['open_in_new_tab'] ? 'target="_blank"' : ''; ?>
+                           class="group relative bg-white p-8 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col items-center text-center hover:-translate-y-2 overflow-hidden">
                             <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div class="w-20 h-20 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                                 <i class="ph <?php echo $m['icon']; ?> text-4xl"></i>
