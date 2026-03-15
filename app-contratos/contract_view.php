@@ -89,13 +89,29 @@ $is_warning = (!$is_expired && $diff->days <= 30);
 // Alertas de Sucesso/Erro
 $success_upload = $_GET['success_upload'] ?? null;
 $success_delete_anexo = $_GET['success_delete'] ?? null;
+$error_code = $_GET['error'] ?? null;
+
+// Mapa de Erros
+$error_map = [
+    'no_files_selected' => 'Nenhum arquivo foi selecionado para upload.',
+    'unauthorized' => 'Você não tem permissão para realizar esta ação.',
+    'db' => 'Ocorreu um erro no banco de dados ao processar a solicitação.',
+    'invalid_contract' => 'ID de contrato inválido ou não encontrado.'
+];
 ?>
 
 <div class="space-y-6">
     <?php if ($success_upload): ?>
         <div class="alert alert-success shadow-lg">
             <i class="ph ph-check-circle text-2xl"></i>
-            <span><?php echo $success_upload; ?> arquivo(s) anexado(s) com sucesso!</span>
+            <span><?php echo (int)$success_upload; ?> arquivo(s) anexado(s) com sucesso!</span>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($error_code): ?>
+        <div class="alert alert-error shadow-lg">
+            <i class="ph ph-warning-circle text-2xl"></i>
+            <span><?php echo $error_map[$error_code] ?? "Erro inesperado: " . htmlspecialchars($error_code); ?></span>
         </div>
     <?php endif; ?>
 

@@ -32,20 +32,33 @@ if ($action === 'upload') {
         mkdir($upload_base, 0777, true);
     }
 
-    $files = $_FILES['anexos'];
-    $categorias = $_POST['categorias'];
-    $descricoes = $_POST['descricoes'];
+    $files = $_FILES['anexos'] ?? null;
+    $categorias = $_POST['categorias'] ?? [];
+    $descricoes = $_POST['descricoes'] ?? [];
+
+    if (!$files || empty($files['name'][0])) {
+        header("Location: contract_view.php?id=$contrato_id&error=no_files_selected");
+        exit;
+    }
 
     $success_count = 0;
     $error_messages = [];
 
     for ($i = 0; $i < count($files['name']); $i++) {
-        if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
+        if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+            $error_messages[] = "Erro no arquivo " . $files['name'][$i] . ": Código " . $files['error'][$i];
+            continue;
+        }
 
         $tmp_name = $files['tmp_name'][$i];
         $original_name = $files['name'][$i];
-        $categoria_id = $categorias[$i];
-        $descricao = $descricoes[$i];
+        $categoria_id = $categorias[$i] ?? null;
+        $descricao = $descricoes[$i] ?? '';
+
+        if (!$categoria_id) {
+            $error_messages[] = "Categoria não selecionada para o arquivo " . $original_name;
+            continue;
+        }
 
         // Busca abreviação da categoria
         $stmt_cat = $pdo->prepare("SELECT abreviacao FROM contratos_anexos_categorias WHERE id = ?");
