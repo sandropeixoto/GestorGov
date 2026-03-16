@@ -7,9 +7,7 @@
 require_once 'config.php';
 require_once __DIR__ . '/../logger.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// session_start() não é mais necessário aqui, já está no config.php de forma centralizada
 
 // 1. Captura os dados da URL enviados pelo Portal
 $payload_base64 = $_GET['sso_payload'] ?? null;

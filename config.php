@@ -4,6 +4,25 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// --- CENTRALIZAÇÃO DE SESSÃO GESTORGOV ---
+// Define parâmetros para que a sessão dure 24 horas e seja válida em todo o domínio/subdiretórios
+$session_lifetime = 86400; // 24 horas em segundos
+ini_set('session.gc_maxlifetime', $session_lifetime);
+ini_set('session.cookie_lifetime', $session_lifetime);
+
+if (session_status() === PHP_SESSION_NONE) {
+    // Garante que o cookie de sessão seja válido para a raiz e todos os subdiretórios
+    session_set_cookie_params([
+        'lifetime' => $session_lifetime,
+        'path' => '/',
+        'domain' => $_SERVER['HTTP_HOST'] ?? '',
+        'secure' => isset($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
+
 require_once __DIR__ . '/logger.php';
 
 $host = "192.185.214.25";

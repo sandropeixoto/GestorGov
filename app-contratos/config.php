@@ -3,6 +3,23 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// --- CENTRALIZAÇÃO DE SESSÃO GESTORGOV (MODULO) ---
+$session_lifetime = 86400; // 24 horas
+ini_set('session.gc_maxlifetime', $session_lifetime);
+ini_set('session.cookie_lifetime', $session_lifetime);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => $session_lifetime,
+        'path' => '/', // IMPORTANTE: Deve ser o mesmo da raiz
+        'domain' => $_SERVER['HTTP_HOST'] ?? '',
+        'secure' => isset($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
+
 // app-contratos/config.php
 
 $host = "192.185.214.25"; // "srv24.prodns.com.br";

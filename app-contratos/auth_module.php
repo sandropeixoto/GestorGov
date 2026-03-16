@@ -1,9 +1,6 @@
 <?php
 // app-contratos/auth_module.php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-require_once 'config.php';
+require_once 'config.php'; // Inicia sessão globalmente
 
 // A re-hidratação agora é feita centralmente no auth_check.php da raiz,
 // que é incluído no header.php antes deste arquivo.
