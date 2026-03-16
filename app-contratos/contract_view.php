@@ -142,14 +142,16 @@ $error_map = [
     <!-- Header de Ações -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-4">
-            <a href="<?php echo $is_tac ? 'contract_view.php?id='.$contract['PaiId'] : 'contratos.php'; ?>" class="btn btn-circle btn-ghost">
+            <a href="<?php echo $is_tac ? 'contract_view.php?id='.$contract['PaiId'] : 'contratos.php'; ?>" class="btn btn-circle btn-ghost" title="Voltar">
                 <i class="ph ph-arrow-left text-2xl"></i>
             </a>
             <div>
                 <?php if ($is_tac): ?>
                     <div class="flex items-center gap-2 mb-1">
                         <span class="badge badge-primary badge-sm font-bold uppercase text-[9px]">Termo Aditivo (TAC)</span>
-                        <span class="text-xs opacity-60">Vínculo: Contrato Principal <?php echo ($parent_info['SeqContrato'] ?? '') . '/' . ($parent_info['AnoContrato'] ?? ''); ?></span>
+                        <a href="contract_view.php?id=<?php echo $contract['PaiId']; ?>" class="text-xs link link-primary font-bold hover:opacity-70 transition-opacity">
+                            Vínculo: Contrato Principal <?php echo ($parent_info['SeqContrato'] ?? '') . '/' . ($parent_info['AnoContrato'] ?? ''); ?>
+                        </a>
                     </div>
                 <?php endif; ?>
                 <h2 class="text-3xl font-bold">
@@ -168,6 +170,12 @@ $error_map = [
             </div>
         </div>
         <div class="flex gap-2">
+            <?php if ($is_tac): ?>
+                <a href="contract_view.php?id=<?php echo $contract['PaiId']; ?>" class="btn btn-outline btn-primary gap-2">
+                    <i class="ph ph-arrow-u-up-left"></i> Contrato Principal
+                </a>
+            <?php endif; ?>
+
             <?php if (CONTRATOS_CONSULTOR): ?>
             <a href="contract_form.php?id=<?php echo $id; ?>" class="btn btn-outline btn-info gap-2">
                 <i class="ph ph-pencil-simple"></i> Editar <?php echo $is_tac ? 'Termo' : 'Contrato'; ?>
@@ -188,7 +196,7 @@ $error_map = [
             <!-- Card de Resumo Principal -->
             <div class="card bg-base-100 shadow-xl border border-base-200">
                 <div class="card-body">
-                    <h3 class="font-bold text-lg border-b pb-2 mb-4">Resumo do Objeto</h3>
+                    <h3 class="font-bold text-lg border-b pb-2 mb-4"><?php echo $is_tac ? 'Justificativa do Termo' : 'Resumo do Objeto'; ?></h3>
                     <p class="text-base-content/80 leading-relaxed italic">
                         "<?php echo nl2br(htmlspecialchars($contract['Objeto'] ?? '')); ?>"
                     </p>
@@ -200,13 +208,15 @@ $error_map = [
                             <div class="stat-desc font-medium">Início: <?php echo isset($contract['VigenciaInicio']) ? date('d/m/Y', strtotime($contract['VigenciaInicio'])) : 'N/A'; ?></div>
                         </div>
                         <div class="stat p-0">
-                            <div class="stat-title text-xs uppercase font-bold">Valor Mensal Original</div>
+                            <div class="stat-title text-xs uppercase font-bold">Valor Mensal <?php echo $is_tac ? 'do Termo' : 'Original'; ?></div>
                             <div class="stat-value text-2xl">R$ <?php echo number_format($contract['ValorMensalContrato'] ?? 0, 2, ',', '.'); ?></div>
                         </div>
                         <div class="stat p-0">
-                            <div class="stat-title text-xs uppercase font-bold text-secondary">Valor Total Acumulado</div>
-                            <div class="stat-value text-2xl text-secondary">R$ <?php echo number_format($total_value, 2, ',', '.'); ?></div>
-                            <div class="stat-desc font-bold text-secondary/70">Contrato + Aditivos</div>
+                            <div class="stat-title text-xs uppercase font-bold text-secondary"><?php echo $is_tac ? 'Valor Global do Termo' : 'Valor Total Acumulado'; ?></div>
+                            <div class="stat-value text-2xl text-secondary">R$ <?php echo number_format($is_tac ? $contract['ValorGlobalContrato'] : $total_value, 2, ',', '.'); ?></div>
+                            <?php if (!$is_tac): ?>
+                                <div class="stat-desc font-bold text-secondary/70">Contrato + Aditivos</div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -275,7 +285,8 @@ $error_map = [
                 </div>
             </div>
 
-            <!-- Listagem de Termos Vinculados -->
+            <!-- Listagem de Termos Vinculados (Apenas no Contrato Principal) -->
+            <?php if (!$is_tac): ?>
             <div class="card bg-base-100 shadow-xl border border-base-200 overflow-hidden">
                 <div class="p-6 border-b border-base-200 flex justify-between items-center bg-base-50">
                     <h3 class="text-xl font-bold flex items-center gap-2">
@@ -301,24 +312,22 @@ $error_map = [
                         </thead>
                         <tbody>
                             <?php foreach ($terms as $t): ?>
-                                <tr class="hover group">
+                                <tr class="hover group cursor-pointer transition-colors" onclick="window.location='contract_view.php?id=<?php echo $t['Id']; ?>'">
                                     <td><span class="badge badge-outline badge-sm uppercase font-bold text-[10px]"><?php echo htmlspecialchars($t['TipoNome'] ?? ''); ?></span></td>
-                                    <td class="font-bold"><?php echo htmlspecialchars($t['SeqContrato'] ?? ''); ?></td>
+                                    <td class="font-bold text-primary"><?php echo htmlspecialchars($t['SeqContrato'] ?? ''); ?></td>
                                     <td><?php echo isset($t['DataAssinatura']) ? date('d/m/Y', strtotime($t['DataAssinatura'])) : 'N/A'; ?></td>
                                     <td class="text-primary font-medium"><?php echo isset($t['VigenciaFim']) ? date('d/m/Y', strtotime($t['VigenciaFim'])) : 'N/A'; ?></td>
                                     <td class="text-right font-semibold">R$ <?php echo number_format($t['ValorGlobalContrato'] ?? 0, 2, ',', '.'); ?></td>
                                     <td class="text-center">
                                         <div class="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <a href="contract_view.php?id=<?php echo $t['Id']; ?>" onclick="event.stopPropagation()" class="btn btn-square btn-sm btn-ghost text-primary" title="Ver Dossiê do Termo"><i class="ph ph-eye text-lg"></i></a>
+                                            
                                             <?php if (CONTRATOS_CONSULTOR): ?>
-                                            <a href="contract_form.php?id=<?php echo $t['Id']; ?>" class="btn btn-square btn-sm btn-ghost text-info" title="Editar"><i class="ph ph-pencil-simple text-lg"></i></a>
+                                            <a href="contract_form.php?id=<?php echo $t['Id']; ?>" onclick="event.stopPropagation()" class="btn btn-square btn-sm btn-ghost text-info" title="Editar"><i class="ph ph-pencil-simple text-lg"></i></a>
                                             <?php endif; ?>
 
                                             <?php if (CONTRATOS_GESTOR): ?>
-                                            <button onclick="confirmDelete(<?php echo $t['Id']; ?>, '<?php echo ($t['SeqContrato'] ?? '') . '/' . ($t['AnoContrato'] ?? ''); ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir"><i class="ph ph-trash text-lg"></i></button>
-                                            <?php endif; ?>
-
-                                            <?php if (!CONTRATOS_CONSULTOR): ?>
-                                            <i class="ph ph-eye text-lg opacity-30" title="Apenas Visualização"></i>
+                                            <button onclick="event.stopPropagation(); confirmDelete(<?php echo $t['Id']; ?>, '<?php echo ($t['SeqContrato'] ?? '') . '/' . ($t['AnoContrato'] ?? ''); ?>')" class="btn btn-square btn-sm btn-ghost text-error" title="Excluir"><i class="ph ph-trash text-lg"></i></button>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -333,8 +342,9 @@ $error_map = [
                     </table>
                 </div>
             </div>
+            <?php endif; ?>
 
-            <!-- Listagem de Documentos Anexos -->
+            <!-- Listagem de Documentos Anexos (Suporta TAC e Contrato Principal) -->
             <div class="card bg-base-100 shadow-xl border border-base-200 overflow-hidden">
                 <div class="p-6 border-b border-base-200 flex justify-between items-center bg-base-50">
                     <h3 class="text-xl font-bold flex items-center gap-2">
@@ -352,7 +362,7 @@ $error_map = [
                             <tr class="bg-base-200/50">
                                 <th>Arquivo</th>
                                 <th>Categoria</th>
-                                <th>Descrição</th>
+                                <th>Descrição / Observação</th>
                                 <th>Usuário</th>
                                 <th>Data</th>
                                 <th class="text-center">Ações</th>
@@ -370,9 +380,18 @@ $error_map = [
                                         </div>
                                     </td>
                                     <td><span class="badge badge-sm badge-outline"><?php echo htmlspecialchars($a['CategoriaNome']); ?></span></td>
-                                    <td class="text-xs italic opacity-70"><?php echo htmlspecialchars($a['descricao'] ?? '-'); ?></td>
+                                    <td class="text-xs">
+                                        <?php if ($a['descricao']): ?>
+                                            <div class="flex items-start gap-2 text-info bg-info/5 p-2 rounded border border-info/10">
+                                                <i class="ph ph-chat-centered-text mt-0.5"></i>
+                                                <span><?php echo htmlspecialchars($a['descricao']); ?></span>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="opacity-30 italic">- Nenhuma descrição -</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-xs"><?php echo htmlspecialchars($a['UsuarioNome'] ?? 'N/A'); ?></td>
-                                    <td class="text-xs"><?php echo date('d/m/Y H:i', strtotime($a['data_upload'])); ?></td>
+                                    <td class="text-xs whitespace-nowrap"><?php echo date('d/m/Y H:i', strtotime($a['data_upload'])); ?></td>
                                     <td class="text-center">
                                         <div class="flex justify-center gap-1">
                                             <a href="<?php echo htmlspecialchars($a['caminho_arquivo']); ?>" target="_blank" class="btn btn-square btn-sm btn-ghost text-primary" title="Ver/Baixar">
