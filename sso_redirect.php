@@ -30,13 +30,22 @@ try {
         exit;
     }
 
+    // --- GARANTIA DE NÍVEL (EVITA DOWNGRADE) ---
+    $user_level = $_SESSION['user_level'] ?? 0;
+    if (is_numeric($user_level)) {
+        // Tenta re-mapear se for número
+        if ($user_level == 1) $user_level = 'Administrador';
+        elseif ($user_level == 2) $user_level = 'Gestor';
+        else $user_level = 'Consultor';
+    }
+
     // --- GERAÇÃO DO TOKEN SSO ---
     // Dados que serão passados para o outro sistema
     $payload = [
         'user_id'    => $_SESSION['user_id']    ?? 0,
         'user_name'  => $_SESSION['user_name']  ?? 'Usuário',
         'user_email' => $_SESSION['user_email'] ?? '',
-        'user_level' => $_SESSION['user_level'] ?? 0,
+        'user_level' => $user_level,
         'iat'        => time(),                 // Issued At
         'exp'        => time() + 60             // Expira em 60 segundos (tempo para o handshake)
     ];

@@ -2,7 +2,29 @@
 // auth_check.php na raiz
 require_once __DIR__ . '/config.php'; // config.php já inicia a sessão com parâmetros globais
 
-// Verifica Sessão
+// Verifica Sessão e Re-hidrata se necessário (para evitar downgrade para números)
+if (isset($_SESSION['user_email']) && (!isset($_SESSION['user_level']) || is_numeric($_SESSION['user_level']))) {
+    try {
+        $stmt_r = $pdo->prepare("SELECT id, nome, nivel FROM usuarios WHERE email = ? AND status = 1");
+        $stmt_r->execute([$_SESSION['user_email']]);
+        $r_data = $stmt_r->fetch();
+
+        if ($r_data) {
+            $raw_level = strtolower(trim($r_data['nivel']));
+            if ($raw_level === 'administrador' || $raw_level === '1') {
+                $_SESSION['user_level'] = 'Administrador';
+            } elseif ($raw_level === 'gestor' || $raw_level === '2') {
+                $_SESSION['user_level'] = 'Gestor';
+            } else {
+                $_SESSION['user_level'] = 'Consultor';
+            }
+        }
+    } catch (PDOException $e) {
+        // Silencioso se falhar re-hidratação parcial
+    }
+}
+
+// Verifica Sessão (Original)
 if (!isset($_SESSION['user_email'])) {
     
     // Verifica se existe Cookie de Longa Duração (30 dias) para auto-login
