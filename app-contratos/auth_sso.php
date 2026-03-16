@@ -5,6 +5,7 @@
  * Permite o login automático vindo do Portal GestorGov.
  */
 require_once 'config.php';
+require_once __DIR__ . '/../logger.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
