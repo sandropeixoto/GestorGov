@@ -32,7 +32,7 @@ try {
             'VigenciaFim' => $_POST['VigenciaFim'],
             'DataAssinatura' => $_POST['DataAssinatura'],
             'SeqContrato' => $_POST['SeqContrato'],
-            'AnoContrato' => $_POST['AnoContrato'],
+            'AnoContrato' => $_POST['AnoContrato'] ?: null,
             'PaiId' => $paiId,
             'TipoDocumentoId' => $tipoDocId,
             'FiscalContrato' => $_POST['FiscalContrato'] ?: null,
@@ -48,7 +48,14 @@ try {
             'DiretoriaId' => $_POST['DiretoriaId'] ?: null,
             'CoordenacaoId' => $_POST['CoordenacaoId'] ?: null,
             'CategoriaContratoId' => $_POST['CategoriaContratoId'] ?: null,
-            'FonteRecursosId' => $_POST['FonteRecursosId'] ?: null
+            'FonteRecursosId' => $_POST['FonteRecursosId'] ?: null,
+            'FundamentacaoLegal' => $_POST['FundamentacaoLegal'] ?? null,
+            'ProgramaTrabalho' => $_POST['ProgramaTrabalho'] ?? null,
+            'FuncionalProgramatica' => $_POST['FuncionalProgramatica'] ?? null,
+            'NaturezaDespesa' => $_POST['NaturezaDespesa'] ?? null,
+            'FonteRecursos' => $_POST['FonteRecursos'] ?? null,
+            'NumeroDiarioOficialContrato' => $_POST['NumeroDiarioOficialContrato'] ?? null,
+            'Observacao' => $_POST['Observacao'] ?? null
         ];
 
         $contrato_final_id = $id;

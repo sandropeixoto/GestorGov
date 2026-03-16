@@ -25,7 +25,7 @@ try {
         LEFT JOIN FontesRecursos f ON c.FonteRecursosId = f.IdFonte
         LEFT JOIN Diretorias d ON c.DiretoriaId = d.IdDiretoria
         LEFT JOIN contratos_coordenacoes coord ON c.CoordenacaoId = coord.Id
-        WHERE c.Id = ? AND c.PaiId = 0
+        WHERE c.Id = ?
     ");
     $stmt->execute([$id]);
     $contract = $stmt->fetch();
@@ -34,28 +34,40 @@ try {
         die("Contrato não encontrado.");
     }
 
-    // Busca Termos Vinculados (Aditivos, Apostilamentos, etc)
-    try {
-        $stmt_terms = $pdo->prepare("
-            SELECT c.*, COALESCE(td.Nome, 'Termo (Antigo)') as TipoNome
-            FROM Contratos c
-            LEFT JOIN TiposDocumentos td ON c.TipoDocumentoId = td.Id
-            WHERE c.PaiId = ?
-            ORDER BY c.DataAssinatura ASC, c.Id ASC
-        ");
-        $stmt_terms->execute([$id]);
-        $terms = $stmt_terms->fetchAll();
-    } catch (PDOException $e) {
-        // Fallback caso a tabela TiposDocumentos ainda não tenha sido criada
-        $stmt_terms = $pdo->prepare("SELECT *, 'Termo' as TipoNome FROM Contratos WHERE PaiId = ? ORDER BY Id ASC");
-        $stmt_terms->execute([$id]);
-        $terms = $stmt_terms->fetchAll();
+    $is_tac = ($contract['PaiId'] ?? 0) > 0;
+    $main_contract_id = $is_tac ? $contract['PaiId'] : $id;
+
+    // Se for o contrato principal, busca os termos vinculados
+    $terms = [];
+    if (!$is_tac) {
+        try {
+            $stmt_terms = $pdo->prepare("
+                SELECT c.*, COALESCE(td.Nome, 'Termo') as TipoNome
+                FROM Contratos c
+                LEFT JOIN TiposDocumentos td ON c.TipoDocumentoId = td.Id
+                WHERE c.PaiId = ?
+                ORDER BY c.DataAssinatura ASC, c.Id ASC
+            ");
+            $stmt_terms->execute([$id]);
+            $terms = $stmt_terms->fetchAll();
+        } catch (PDOException $e) {
+            $stmt_terms = $pdo->prepare("SELECT *, 'Termo' as TipoNome FROM Contratos WHERE PaiId = ? ORDER BY Id ASC");
+            $stmt_terms->execute([$id]);
+            $terms = $stmt_terms->fetchAll();
+        }
+    } else {
+        // Se for um TAC, busca os dados básicos do pai para exibir no header
+        $stmt_parent = $pdo->prepare("SELECT SeqContrato, AnoContrato FROM Contratos WHERE Id = ?");
+        $stmt_parent->execute([$contract['PaiId']]);
+        $parent_info = $stmt_parent->fetch();
     }
 
-    // Cálculo do Valor Total (Contrato + Aditivos)
+    // Cálculo do Valor Total (Contrato + Aditivos) - Apenas se for principal
     $total_value = $contract['ValorGlobalContrato'];
-    foreach($terms as $t) {
-        $total_value += $t['ValorGlobalContrato'];
+    if (!$is_tac) {
+        foreach($terms as $t) {
+            $total_value += $t['ValorGlobalContrato'];
+        }
     }
 
     // Busca Categorias de Anexos
@@ -130,18 +142,26 @@ $error_map = [
     <!-- Header de Ações -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-4">
-            <a href="contratos.php" class="btn btn-circle btn-ghost">
+            <a href="<?php echo $is_tac ? 'contract_view.php?id='.$contract['PaiId'] : 'contratos.php'; ?>" class="btn btn-circle btn-ghost">
                 <i class="ph ph-arrow-left text-2xl"></i>
             </a>
             <div>
-                <h2 class="text-3xl font-bold">Contrato <?php echo ($contract['SeqContrato'] ?? '') . '/' . ($contract['AnoContrato'] ?? ''); ?></h2>
+                <?php if ($is_tac): ?>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="badge badge-primary badge-sm font-bold uppercase text-[9px]">Termo Aditivo (TAC)</span>
+                        <span class="text-xs opacity-60">Vínculo: Contrato Principal <?php echo ($parent_info['SeqContrato'] ?? '') . '/' . ($parent_info['AnoContrato'] ?? ''); ?></span>
+                    </div>
+                <?php endif; ?>
+                <h2 class="text-3xl font-bold">
+                    <?php echo $is_tac ? 'Termo N. '.$contract['SeqContrato'] : 'Contrato ' . ($contract['SeqContrato'] ?? '') . '/' . ($contract['AnoContrato'] ?? ''); ?>
+                </h2>
                 <div class="flex items-center gap-2 mt-1">
                     <?php if ($is_expired): ?>
-                        <span class="badge badge-error gap-1"><i class="ph ph-x-circle"></i> Vencido</span>
+                        <span class="badge badge-error gap-1 text-white font-bold"><i class="ph ph-x-circle"></i> Vencido</span>
                     <?php elseif ($is_warning): ?>
-                        <span class="badge badge-warning gap-1"><i class="ph ph-warning"></i> Vence em <?php echo $diff->days; ?> dias</span>
+                        <span class="badge badge-warning gap-1 font-bold"><i class="ph ph-warning"></i> Vence em <?php echo $diff->days; ?> dias</span>
                     <?php else: ?>
-                        <span class="badge badge-success text-white gap-1"><i class="ph ph-check-circle"></i> Vigente</span>
+                        <span class="badge badge-success text-white gap-1 font-bold"><i class="ph ph-check-circle"></i> Vigente</span>
                     <?php endif; ?>
                     <span class="text-base-content/50 text-sm">• Fornecedor: <?php echo htmlspecialchars($contract['PrestadorNome'] ?? ''); ?></span>
                 </div>
@@ -150,12 +170,12 @@ $error_map = [
         <div class="flex gap-2">
             <?php if (CONTRATOS_CONSULTOR): ?>
             <a href="contract_form.php?id=<?php echo $id; ?>" class="btn btn-outline btn-info gap-2">
-                <i class="ph ph-pencil-simple"></i> Editar Contrato
+                <i class="ph ph-pencil-simple"></i> Editar <?php echo $is_tac ? 'Termo' : 'Contrato'; ?>
             </a>
             <?php endif; ?>
 
             <?php if (CONTRATOS_GESTOR): ?>
-            <button onclick="confirmDelete(<?php echo $id; ?>, '<?php echo ($contract['SeqContrato'] ?? '') . '/' . ($contract['AnoContrato'] ?? ''); ?>')" class="btn btn-outline btn-error gap-2">
+            <button onclick="confirmDelete(<?php echo $id; ?>, '<?php echo $is_tac ? 'Termo N. '.$contract['SeqContrato'] : ($contract['SeqContrato'] ?? '') . '/' . ($contract['AnoContrato'] ?? ''); ?>')" class="btn btn-outline btn-error gap-2">
                 <i class="ph ph-trash"></i> Excluir
             </button>
             <?php endif; ?>
@@ -194,23 +214,43 @@ $error_map = [
                     <div class="collapse collapse-arrow mt-6 bg-base-200/50 rounded-lg">
                         <input type="checkbox" /> 
                         <div class="collapse-title text-sm font-bold flex items-center gap-2">
-                            <i class="ph ph-plus-circle text-primary"></i> Clique para visualizar detalhes administrativos (Fiscal, Licitação, Recursos)
+                            <i class="ph ph-plus-circle text-primary"></i> Detalhes Administrativos e Orçamentários
                         </div>
                         <div class="collapse-content">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                                <div class="space-y-3">
-                                    <p class="text-sm"><strong>Diretoria:</strong> <?php echo htmlspecialchars($contract['DiretoriaSigla'] ?? 'Não informada'); ?></p>
-                                    <p class="text-sm"><strong>Coordenador da área:</strong> <?php echo htmlspecialchars($contract['CoordenacaoNome'] ?? 'Não informada'); ?></p>
-                                    <p class="text-sm"><strong>Fiscal Titular:</strong> <?php echo htmlspecialchars($contract['FiscalContrato'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($contract['EmailFiscal'] ?? '-'); ?>)</p>
-                                    <p class="text-sm"><strong>Fiscal Substituto:</strong> <?php echo htmlspecialchars($contract['FiscalSubstituto'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($contract['EmailFiscalSubstituto'] ?? '-'); ?>)</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                                <!-- Coluna 1: Gestão -->
+                                <div class="space-y-4">
+                                    <h4 class="text-[10px] uppercase font-bold opacity-40 border-b pb-1">Gestão e Fiscalização</h4>
+                                    <div class="space-y-2">
+                                        <p class="text-sm"><strong>Diretoria:</strong> <?php echo htmlspecialchars($contract['DiretoriaSigla'] ?? 'Não informada'); ?></p>
+                                        <p class="text-sm"><strong>Coordenador da área:</strong> <?php echo htmlspecialchars($contract['CoordenacaoNome'] ?? 'Não informada'); ?></p>
+                                        <p class="text-sm"><strong>Fiscal Titular:</strong> <?php echo htmlspecialchars($contract['FiscalContrato'] ?? 'N/A'); ?></p>
+                                        <p class="text-sm"><strong>Fiscal Substituto:</strong> <?php echo htmlspecialchars($contract['FiscalSubstituto'] ?? 'N/A'); ?></p>
+                                        <?php if ($contract['NumeroDiarioOficialContrato']): ?>
+                                            <p class="text-sm"><strong>Diário Oficial:</strong> <?php echo htmlspecialchars($contract['NumeroDiarioOficialContrato']); ?></p>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
-                                <div class="space-y-3">
-                                    <p class="text-sm"><strong>Modalidade:</strong> <?php echo htmlspecialchars($contract['ModalidadeNome'] ?? 'N/A'); ?> (<?php echo htmlspecialchars($contract['NumeroModalidade'] ?? '-'); ?>)</p>
-                                    <p class="text-sm"><strong>Nº Processo:</strong> <?php echo htmlspecialchars($contract['NProcesso'] ?? 'N/A'); ?></p>
-                                    <p class="text-sm"><strong>Fonte de Recurso:</strong> <?php echo htmlspecialchars($contract['FonteNome'] ?? 'N/A'); ?></p>
-                                    <p class="text-sm"><strong>Categoria:</strong> <?php echo htmlspecialchars($contract['CategoriaNome'] ?? 'N/A'); ?></p>
+                                <!-- Coluna 2: Execução -->
+                                <div class="space-y-4">
+                                    <h4 class="text-[10px] uppercase font-bold opacity-40 border-b pb-1">Execução Orçamentária</h4>
+                                    <div class="space-y-2">
+                                        <p class="text-sm"><strong>Nº Processo:</strong> <?php echo htmlspecialchars($contract['NProcesso'] ?? 'N/A'); ?></p>
+                                        <p class="text-sm"><strong>Fundamentação:</strong> <?php echo htmlspecialchars($contract['FundamentacaoLegal'] ?? 'N/A'); ?></p>
+                                        <p class="text-sm"><strong>Programa Trab.:</strong> <?php echo htmlspecialchars($contract['ProgramaTrabalho'] ?? 'N/A'); ?></p>
+                                        <p class="text-sm"><strong>Funcional Prog.:</strong> <?php echo htmlspecialchars($contract['FuncionalProgramatica'] ?? 'N/A'); ?></p>
+                                        <p class="text-sm"><strong>Nat. Despesa:</strong> <?php echo htmlspecialchars($contract['NaturezaDespesa'] ?? 'N/A'); ?></p>
+                                        <p class="text-sm"><strong>Fonte Recursos:</strong> <?php echo htmlspecialchars($contract['FonteNome'] ?? ''); ?> (<?php echo htmlspecialchars($contract['FonteRecursos'] ?? ''); ?>)</p>
+                                    </div>
                                 </div>
                             </div>
+
+                            <?php if ($contract['Observacao']): ?>
+                                <div class="mt-6 p-4 bg-white/50 rounded-lg border border-base-300">
+                                    <h4 class="text-[10px] uppercase font-bold opacity-40 mb-2">Observações</h4>
+                                    <p class="text-sm italic leading-relaxed"><?php echo nl2br(htmlspecialchars($contract['Observacao'])); ?></p>
+                                </div>
+                            <?php endif; ?>
 
                             <?php if (!empty($fiscais_setoriais)): ?>
                             <div class="mt-6 border-t border-base-300 pt-4">

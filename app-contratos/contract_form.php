@@ -9,6 +9,7 @@ if (!CONTRATOS_CONSULTOR) {
 }
 
 $id = $_GET['id'] ?? null;
+$parentId = $_GET['parent_id'] ?? 0;
 $contract = null;
 $prestador_atual = null;
 $fiscais_setoriais = [];
@@ -24,8 +25,38 @@ if ($id) {
     $stmt_fs = $pdo->prepare("SELECT * FROM contratos_fiscais_setoriais WHERE contrato_id = ? ORDER BY id ASC");
     $stmt_fs->execute([$id]);
     $fiscais_setoriais = $stmt_fs->fetchAll();
+
+    $parentId = $contract['PaiId'] ?? 0;
+} elseif ($parentId) {
+    $stmt = $pdo->prepare("SELECT c.*, p.CNPJ as PrestadorDoc, p.Nome as PrestadorNome 
+                           FROM Contratos c 
+                           LEFT JOIN Prestador p ON c.PrestadorId = p.Id 
+                           WHERE c.Id = ?");
+    $stmt->execute([$parentId]);
+    $parent = $stmt->fetch();
+    if ($parent) {
+        $contract = $parent;
+        $contract['Id'] = null;
+        $contract['PaiId'] = $parentId;
+        $contract['SeqContrato'] = '';
+        $contract['AnoContrato'] = null;
+        $contract['Objeto'] = '';
+        $contract['VigenciaInicio'] = '';
+        $contract['VigenciaFim'] = '';
+        $contract['DataAssinatura'] = '';
+        $contract['ValorMensalContrato'] = '';
+        $contract['ValorGlobalContrato'] = '';
+        $contract['NProcesso'] = '';
+        $contract['FundamentacaoLegal'] = '';
+        $contract['ProgramaTrabalho'] = '';
+        $contract['FuncionalProgramatica'] = '';
+        $contract['NaturezaDespesa'] = '';
+    }
 }
 
+$is_tac = $parentId > 0;
+$page_title = $id ? ($is_tac ? 'Editar Termo Aditivo' : 'Editar Contrato') : ($is_tac ? 'Novo Termo Aditivo' : 'Novo Contrato');
+?>
 // Fetch Categories for dropdown
 $categories = $pdo->query("SELECT Id, Descricao FROM CategoriaContrato ORDER BY Descricao ASC")->fetchAll();
 
@@ -45,18 +76,18 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
 <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h2 class="text-3xl font-bold text-base-content"><?php echo $id ? 'Editar Contrato' : 'Novo Contrato'; ?></h2>
-            <p class="text-base-content/60">Preencha os campos abaixo com as informações do contrato.</p>
+            <h2 class="text-3xl font-bold text-base-content"><?php echo $page_title; ?></h2>
+            <p class="text-base-content/60"><?php echo $is_tac ? 'Vincular novo termo aditivo ao contrato principal.' : 'Preencha os campos abaixo com as informações do contrato.'; ?></p>
         </div>
-        <a href="contratos.php" class="btn btn-ghost gap-2">
+        <a href="<?php echo $is_tac && !$id ? 'contract_view.php?id='.$parentId : 'contratos.php'; ?>" class="btn btn-ghost gap-2">
             <i class="ph ph-arrow-left"></i> Voltar
         </a>
     </div>
 
     <form action="contracts_action.php" method="POST" class="card bg-base-100 shadow-xl border border-base-200">
         <input type="hidden" name="action" value="<?php echo $id ? 'update' : 'create'; ?>">
-        <input type="hidden" name="PaiId" value="0">
-        <input type="hidden" name="TipoDocumentoId" value="1">
+        <input type="hidden" name="PaiId" value="<?php echo $parentId; ?>">
+        <input type="hidden" name="TipoDocumentoId" value="<?php echo $is_tac ? 2 : 1; ?>">
         <?php if ($id): ?>
             <input type="hidden" name="id" value="<?php echo $id; ?>">
         <?php endif; ?>
@@ -69,19 +100,28 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="form-control md:col-span-1">
-                        <label class="label"><span class="label-text font-semibold">Número</span></label>
+                        <label class="label"><span class="label-text font-semibold"><?php echo $is_tac ? 'N. TAC' : 'Número'; ?></span></label>
                         <input type="number" name="SeqContrato" required class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['SeqContrato'] ?? ''); ?>" placeholder="Ex: 45">
                     </div>
+                    <?php if (!$is_tac): ?>
                     <div class="form-control md:col-span-1">
                         <label class="label"><span class="label-text font-semibold">Ano</span></label>
                         <input type="number" name="AnoContrato" required class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['AnoContrato'] ?? date('Y')); ?>">
                     </div>
+                    <?php else: ?>
+                        <input type="hidden" name="AnoContrato" value="">
+                    <?php endif; ?>
+                    <div class="form-control <?php echo $is_tac ? 'md:col-span-3' : 'md:col-span-2'; ?>">
+                        <label class="label"><span class="label-text font-semibold">Número do Processo</span></label>
+                        <input type="text" name="NProcesso" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['NProcesso'] ?? ''); ?>">
+                    </div>
                     <div class="form-control md:col-span-4">
-                        <label class="label"><span class="label-text font-semibold">Objeto</span></label>
+                        <label class="label"><span class="label-text font-semibold"><?php echo $is_tac ? 'Justificativa (Objeto)' : 'Objeto'; ?></span></label>
                         <textarea name="Objeto" required class="textarea textarea-bordered h-24" 
-                                  placeholder="Descrição detalhada do contrato..."><?php echo htmlspecialchars($contract['Objeto'] ?? ''); ?></textarea>
+                                  placeholder="Descrição detalhada..."><?php echo htmlspecialchars($contract['Objeto'] ?? ''); ?></textarea>
                     </div>
                 </div>
             </section>
@@ -153,6 +193,47 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                         <input type="number" step="0.01" name="ValorGlobalContrato" required class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['ValorGlobalContrato'] ?? ''); ?>" placeholder="0.00">
                     </div>
+                </div>
+            </section>
+
+            <!-- Execução Orçamentária e TAC -->
+            <section>
+                <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                    <i class="ph ph-coins text-primary"></i> Execução Orçamentária <?php echo $is_tac ? 'e TAC' : ''; ?>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-control md:col-span-2">
+                        <label class="label"><span class="label-text font-semibold">Fundamentação Legal</span></label>
+                        <input type="text" name="FundamentacaoLegal" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['FundamentacaoLegal'] ?? ''); ?>" placeholder="Ex: Art. 57, inciso II da Lei 8.666/93">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Programa de Trabalho</span></label>
+                        <input type="text" name="ProgramaTrabalho" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['ProgramaTrabalho'] ?? ''); ?>">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Funcional Programática</span></label>
+                        <input type="text" name="FuncionalProgramatica" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['FuncionalProgramatica'] ?? ''); ?>">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Natureza da Despesa</span></label>
+                        <input type="text" name="NaturezaDespesa" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['NaturezaDespesa'] ?? ''); ?>">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Nº Fonte Recursos (Texto)</span></label>
+                        <input type="text" name="FonteRecursos" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['FonteRecursos'] ?? ''); ?>" placeholder="Ex: 0101">
+                    </div>
+                    <?php if ($is_tac): ?>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Diário Oficial TAC</span></label>
+                        <input type="text" name="NumeroDiarioOficialContrato" class="input input-bordered" 
+                               value="<?php echo htmlspecialchars($contract['NumeroDiarioOficialContrato'] ?? ''); ?>">
+                    </div>
+                    <?php endif; ?>
                 </div>
             </section>
 
@@ -287,6 +368,10 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
                         <label class="label"><span class="label-text font-semibold">Número da Modalidade</span></label>
                         <input type="text" name="NumeroModalidade" class="input input-bordered" 
                                value="<?php echo htmlspecialchars($contract['NumeroModalidade'] ?? ''); ?>" placeholder="Ex: 002/2021">
+                    </div>
+                    <div class="form-control md:col-span-2">
+                        <label class="label"><span class="label-text font-semibold">Observação</span></label>
+                        <textarea name="Observacao" class="textarea textarea-bordered h-20" placeholder="Observações adicionais..."><?php echo htmlspecialchars($contract['Observacao'] ?? ''); ?></textarea>
                     </div>
                 </div>
             </section>
