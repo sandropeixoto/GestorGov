@@ -59,4 +59,16 @@ if (!isset($_SESSION['user_email'])) {
         exit;
     }
 }
+
+// --- TELEMETRIA DE DEBUG (CONSOLE DO NAVEGADOR) ---
+// Exibe os dados da sessão no console para diagnóstico de permissões
+echo "<script>
+    console.group('🛡️ GestorGov Auth Debug');
+    console.log('User Email:', '" . ($_SESSION['user_email'] ?? 'N/A') . "');
+    console.log('User ID:', '" . ($_SESSION['user_id'] ?? 'N/A') . "');
+    console.log('User Name:', '" . ($_SESSION['user_name'] ?? 'N/A') . "');
+    console.log('User Level:', '" . ($_SESSION['user_level'] ?? 'N/A') . "');
+    console.log('Session ID:', '" . session_id() . "');
+    console.groupEnd();
+</script>";
 ?>

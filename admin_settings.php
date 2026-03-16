@@ -3,7 +3,8 @@
 require_once 'auth_check.php';
 
 // Segurança: Apenas Administradores podem acessar as configurações globais
-if (($_SESSION['user_level'] ?? '') !== 'Administrador') {
+$current_level = strtolower(trim($_SESSION['user_level'] ?? ''));
+if ($current_level !== 'administrador') {
     header("Location: home.php?error=unauthorized");
     exit;
 }
