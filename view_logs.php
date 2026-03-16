@@ -4,7 +4,7 @@ require_once 'auth_check.php';
 require_once 'config.php';
 
 // Segurança: Apenas Administradores acessam logs globais
-if (($_SESSION['user_level'] ?? '') !== 'Administrador') {
+if (strtolower($_SESSION['user_level'] ?? '') !== 'administrador') {
     header("Location: home.php?error=unauthorized");
     exit;
 }

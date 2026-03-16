@@ -4,7 +4,7 @@ require_once 'auth_check.php';
 require_once 'config.php';
 
 // Segurança: Apenas Administradores podem exportar
-if (($_SESSION['user_level'] ?? '') !== 'Administrador') {
+if (strtolower($_SESSION['user_level'] ?? '') !== 'administrador') {
     die("Acesso negado.");
 }
 

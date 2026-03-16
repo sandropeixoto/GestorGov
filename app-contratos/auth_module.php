@@ -7,7 +7,7 @@ require_once 'config.php'; // Inicia sessão globalmente
 
 $user_id = $_SESSION['user_id'] ?? 0;
 $user_level = $_SESSION['user_level'] ?? '';
-$is_admin = $user_level === 'Administrador';
+$is_admin = strtolower($user_level) === 'administrador';
 
 // Busca perfil específico do módulo (apenas se tiver um user_id válido)
 $perfil_modulo = null;
@@ -22,10 +22,11 @@ $stmt_c = $pdo->prepare("SELECT valor FROM contratos_configuracoes WHERE chave =
 $stmt_c->execute();
 $leitura_global = $stmt_c->fetchColumn() === '1';
 
-// Definição de permissões
+// Definição de permissões (Case-Insensitive)
+$raw_perfil = strtolower($perfil_modulo ?? '');
 define('CONTRATOS_ADMIN', $is_admin);
-define('CONTRATOS_GESTOR', $is_admin || $perfil_modulo === 'Gestor');
-define('CONTRATOS_CONSULTOR', $is_admin || $perfil_modulo === 'Gestor' || $perfil_modulo === 'Consultor');
+define('CONTRATOS_GESTOR', $is_admin || $raw_perfil === 'gestor');
+define('CONTRATOS_CONSULTOR', $is_admin || $raw_perfil === 'gestor' || $raw_perfil === 'consultor');
 define('CONTRATOS_LEITOR', CONTRATOS_CONSULTOR || $leitura_global);
 
 // Se não houver sessão ativa de e-mail, algo está errado (auth_check.php deveria ter pego)

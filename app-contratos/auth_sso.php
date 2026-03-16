@@ -42,8 +42,8 @@ $_SESSION['user_email'] = $user_data['user_email'] ?? '';
 
 // Normalização de Nível (Garante compatibilidade com as travas de segurança)
 $raw_level = strtolower(trim($user_data['user_level'] ?? 'Consultor'));
-if ($raw_level === 'administrador') $_SESSION['user_level'] = 'Administrador';
-elseif ($raw_level === 'gestor') $_SESSION['user_level'] = 'Gestor';
+if ($raw_level === 'administrador' || $raw_level === '1') $_SESSION['user_level'] = 'Administrador';
+elseif ($raw_level === 'gestor' || $raw_level === '2') $_SESSION['user_level'] = 'Gestor';
 else $_SESSION['user_level'] = 'Consultor';
 
 // 6. Log de sucesso no login SSO

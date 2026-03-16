@@ -43,6 +43,10 @@ try {
         
         // Mapeamento Robusto: Suporta tanto o Nome quanto o ID numérico do nível
         $raw_level = strtolower(trim($user_data['nivel'] ?? 'Consultor'));
+
+        // DEBUG: Log raw level to console
+        echo "<script>console.log('DEBUG: Raw Level from DB:', '" . ($user_data['nivel'] ?? 'NULL') . "'); console.log('DEBUG: Sanitized Level:', '" . $raw_level . "');</script>";
+
         if ($raw_level === 'administrador' || $raw_level === '1') {
             $_SESSION['user_level'] = 'Administrador';
         } elseif ($raw_level === 'gestor' || $raw_level === '2') {

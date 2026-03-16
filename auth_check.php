@@ -23,6 +23,9 @@ if (!isset($_SESSION['user_email'])) {
                 $stmt_u->execute([$user_email]);
                 $u_data = $stmt_u->fetch();
                 
+                // DEBUG: Log user search result
+                echo "<script>console.log('DEBUG: Searching for email:', '" . $user_email . "'); console.log('DEBUG: User Data found:', " . json_encode($u_data) . ");</script>";
+
                 if ($u_data) {
                     $_SESSION['user_email'] = $user_email;
                     $_SESSION['user_id']    = $u_data['id'];
@@ -30,6 +33,9 @@ if (!isset($_SESSION['user_email'])) {
                     
                     // Mapeamento Robusto: Suporta tanto o Nome quanto o ID numérico do nível
                     $raw_level = strtolower(trim($u_data['nivel']));
+                    
+                    // DEBUG: Log raw level to console
+                    echo "<script>console.log('DEBUG: Raw Level from DB:', '" . $u_data['nivel'] . "'); console.log('DEBUG: Sanitized Level:', '" . $raw_level . "');</script>";
                     
                     if ($raw_level === 'administrador' || $raw_level === '1') {
                         $_SESSION['user_level'] = 'Administrador';
@@ -40,6 +46,8 @@ if (!isset($_SESSION['user_email'])) {
                     }
                 } else {
                     // Usuário SEFA (externo) - Re-hidratação mínima
+                    // DEBUG: User not found in usuarios table
+                    echo "<script>console.warn('DEBUG: User not found in usuarios table. Falling back to Consultor.');</script>";
                     $_SESSION['user_email'] = $user_email;
                     $_SESSION['user_id']    = 0;
                     $_SESSION['user_name']  = explode('@', $user_email)[0];
