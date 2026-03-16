@@ -48,8 +48,14 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .sortable-ghost { opacity: 0.4; background: #e2e8f0 !important; }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col">
     <header class="h-16 flex items-center justify-between px-8 bg-[#0f172a] text-white shadow-lg">
@@ -134,16 +140,20 @@ try {
                     <table class="table table-zebra w-full">
                         <thead>
                             <tr class="bg-base-200/50">
+                                <th class="w-10"></th>
                                 <th class="w-16">Ordem</th>
                                 <th>Módulo</th>
                                 <th>Tipo/URL</th>
                                 <th class="text-right w-24">Ações</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="sortable-list">
                             <?php foreach ($modules as $m): ?>
-                                <tr class="hover group">
-                                    <td class="font-bold text-center"><?php echo $m['display_order']; ?></td>
+                                <tr class="hover group" data-id="<?php echo $m['id']; ?>">
+                                    <td class="drag-handle text-slate-300 hover:text-primary transition-colors">
+                                        <i class="ph ph-dots-six-vertical text-xl"></i>
+                                    </td>
+                                    <td class="font-bold text-center row-order"><?php echo $m['display_order']; ?></td>
                                     <td>
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 bg-base-200 rounded-lg flex items-center justify-center text-primary">
@@ -203,6 +213,49 @@ try {
             document.getElementById('del_name').innerText = name;
             delete_modal.showModal();
         }
+
+        // Inicializa o Drag & Drop com SortableJS
+        const el = document.getElementById('sortable-list');
+        Sortable.create(el, {
+            animation: 150,
+            handle: '.drag-handle',
+            ghostClass: 'sortable-ghost',
+            onEnd: function() {
+                const rows = el.querySelectorAll('tr');
+                const orderData = [];
+                
+                rows.forEach((row, index) => {
+                    const newOrder = index + 1;
+                    // Atualiza visualmente o número da ordem na tabela
+                    row.querySelector('.row-order').innerText = newOrder;
+                    
+                    orderData.push({
+                        id: row.getAttribute('data-id'),
+                        order: newOrder
+                    });
+                });
+
+                // Envia a nova ordem para o servidor via AJAX para atualização em massa
+                const formData = new URLSearchParams();
+                formData.append('action', 'reorder');
+                formData.append('data', JSON.stringify(orderData));
+
+                fetch('launcher_action.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert('Erro ao salvar nova ordem: ' + (data.error || 'Erro desconhecido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro AJAX:', error);
+                });
+            }
+        });
     </script>
 </body>
 </html>

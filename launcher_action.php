@@ -11,6 +11,33 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $action = $_POST['action'] ?? '';
 $id = $_POST['id'] ?? null;
 
+if ($action === 'reorder') {
+    header('Content-Type: application/json');
+    $data = json_decode($_POST['data'] ?? '[]', true);
+    
+    if (empty($data)) {
+        echo json_encode(['success' => false, 'error' => 'Dados vazios']);
+        exit;
+    }
+
+    try {
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare("UPDATE launcher_modules SET display_order = ? WHERE id = ?");
+        foreach ($data as $item) {
+            $stmt->execute([$item['order'], $item['id']]);
+        }
+        $pdo->commit();
+        
+        logSistema($pdo, 'Launcher', 'Reorder Modules', 'launcher_modules', null, $data);
+        echo json_encode(['success' => true]);
+        exit;
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        exit;
+    }
+}
+
 try {
     if ($action === 'create' || $action === 'update') {
         $data = [
