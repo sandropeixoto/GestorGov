@@ -40,7 +40,12 @@ try {
         $_SESSION['user_id'] = $user_data['id'] ?? null;
         $_SESSION['user_email'] = $result['email'];
         $_SESSION['user_name'] = $user_data['nome'] ?? explode('@', $result['email'])[0];
-        $_SESSION['user_level'] = $user_data['nivel'] ?? 'Consultor'; 
+        
+        // Normalização de Nível
+        $raw_level = strtolower(trim($user_data['nivel'] ?? 'Consultor'));
+        if ($raw_level === 'administrador') $_SESSION['user_level'] = 'Administrador';
+        elseif ($raw_level === 'gestor') $_SESSION['user_level'] = 'Gestor';
+        else $_SESSION['user_level'] = 'Consultor'; 
         
         logSistema($pdo, 'Portal', 'Login Success', 'usuarios', $_SESSION['user_id']);
         

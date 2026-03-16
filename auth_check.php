@@ -31,7 +31,11 @@ if (!isset($_SESSION['user_email'])) {
                 if ($u_data) {
                     $_SESSION['user_id']    = $u_data['id'];
                     $_SESSION['user_name']  = $u_data['nome'];
-                    $_SESSION['user_level'] = trim($u_data['nivel']);
+                    // Normaliza para 'Administrador', 'Gestor' ou 'Consultor' conforme o padrão do sistema
+                    $raw_level = strtolower(trim($u_data['nivel']));
+                    if ($raw_level === 'administrador') $_SESSION['user_level'] = 'Administrador';
+                    elseif ($raw_level === 'gestor') $_SESSION['user_level'] = 'Gestor';
+                    else $_SESSION['user_level'] = 'Consultor';
                 } else {
                     // Fallback para usuários SEFA que não estão na tabela 'usuarios'
                     $_SESSION['user_id']    = 0;
