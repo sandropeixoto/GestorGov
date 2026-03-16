@@ -28,11 +28,16 @@ if (!isset($_SESSION['user_email'])) {
                     $_SESSION['user_id']    = $u_data['id'];
                     $_SESSION['user_name']  = $u_data['nome'];
                     
-                    // Normaliza para 'Administrador', 'Gestor' ou 'Consultor'
+                    // Mapeamento Robusto: Suporta tanto o Nome quanto o ID numérico do nível
                     $raw_level = strtolower(trim($u_data['nivel']));
-                    if ($raw_level === 'administrador') $_SESSION['user_level'] = 'Administrador';
-                    elseif ($raw_level === 'gestor') $_SESSION['user_level'] = 'Gestor';
-                    else $_SESSION['user_level'] = 'Consultor';
+                    
+                    if ($raw_level === 'administrador' || $raw_level === '1') {
+                        $_SESSION['user_level'] = 'Administrador';
+                    } elseif ($raw_level === 'gestor' || $raw_level === '2') {
+                        $_SESSION['user_level'] = 'Gestor';
+                    } else {
+                        $_SESSION['user_level'] = 'Consultor';
+                    }
                 } else {
                     // Usuário SEFA (externo) - Re-hidratação mínima
                     $_SESSION['user_email'] = $user_email;

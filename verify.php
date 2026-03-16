@@ -41,12 +41,15 @@ try {
         $_SESSION['user_email'] = $result['email'];
         $_SESSION['user_name'] = $user_data['nome'] ?? explode('@', $result['email'])[0];
         
-        // Normalização de Nível
+        // Mapeamento Robusto: Suporta tanto o Nome quanto o ID numérico do nível
         $raw_level = strtolower(trim($user_data['nivel'] ?? 'Consultor'));
-        if ($raw_level === 'administrador') $_SESSION['user_level'] = 'Administrador';
-        elseif ($raw_level === 'gestor') $_SESSION['user_level'] = 'Gestor';
-        else $_SESSION['user_level'] = 'Consultor'; 
-        
+        if ($raw_level === 'administrador' || $raw_level === '1') {
+            $_SESSION['user_level'] = 'Administrador';
+        } elseif ($raw_level === 'gestor' || $raw_level === '2') {
+            $_SESSION['user_level'] = 'Gestor';
+        } else {
+            $_SESSION['user_level'] = 'Consultor';
+        }
         logSistema($pdo, 'Portal', 'Login Success', 'usuarios', $_SESSION['user_id']);
         
         // Define Cookie de 30 dias para persistência (Segurança: HttpOnly)
