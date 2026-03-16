@@ -4,7 +4,8 @@ require_once 'auth_check.php';
 require_once 'config.php';
 
 // Segurança: Apenas Administradores podem gerenciar usuários
-if (($_SESSION['user_level'] ?? '') !== 'Administrador') {
+$current_level = strtolower(trim($_SESSION['user_level'] ?? ''));
+if ($current_level !== 'administrador') {
     header("Location: home.php?error=unauthorized");
     exit;
 }
