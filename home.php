@@ -89,5 +89,74 @@ function getModuleUrl($m) {
     <footer class="p-8 text-center text-slate-400 text-xs">
         &copy; 2026 GestorGov - Secretaria de Estado da Fazenda do Pará (SEFA)
     </footer>
+
+    <!-- Alertas e Mensagens -->
+    <?php if (isset($_GET['error'])): ?>
+        <div id="alert_container" class="toast toast-top toast-center z-[100] animate-bounce-in">
+            <?php 
+                $error_msg = 'Ocorreu um erro inesperado.';
+                $error_type = 'alert-error';
+
+                switch($_GET['error']) {
+                    case 'unauthorized': 
+                        $error_msg = 'ACESSO NEGADO: Você não tem permissão para acessar este recurso.'; 
+                        break;
+                    case 'expired': 
+                        $error_msg = 'SESSÃO EXPIRADA: Por favor, faça login novamente.'; 
+                        break;
+                    case 'db': 
+                        $error_msg = 'ERRO DE BANCO: Falha na conexão com o servidor.'; 
+                        break;
+                    case 'invalid_module': 
+                        $error_msg = 'MÓDULO INVÁLIDO: O sistema selecionado não está disponível.'; 
+                        break;
+                }
+            ?>
+            <div class="alert <?php echo $error_type; ?> shadow-2xl border-none text-white font-bold py-4 px-8 rounded-2xl flex items-center gap-3">
+                <i class="ph-fill ph-warning-circle text-2xl"></i>
+                <span><?php echo $error_msg; ?></span>
+            </div>
+        </div>
+
+        <script>
+            // Remove o alerta após 5 segundos
+            setTimeout(() => {
+                const alert = document.getElementById('alert_container');
+                if (alert) {
+                    alert.classList.add('animate-fade-out');
+                    setTimeout(() => alert.remove(), 500);
+                }
+            }, 5000);
+
+            // Limpa a URL removendo o parâmetro de erro sem recarregar a página
+            if (window.history.replaceState) {
+                const url = new URL(window.location);
+                url.searchParams.delete('error');
+                window.history.replaceState({}, '', url);
+            }
+        </script>
+        
+        <style>
+            @keyframes bounce-in {
+                0% { transform: translate(-50%, -200%); opacity: 0; }
+                70% { transform: translate(-50%, 10%); opacity: 1; }
+                100% { transform: translate(-50%, 0); opacity: 1; }
+            }
+            @keyframes fade-out {
+                from { opacity: 1; transform: translate(-50%, 0); }
+                to { opacity: 0; transform: translate(-50%, -20px); }
+            }
+            .animate-bounce-in {
+                position: fixed;
+                left: 50%;
+                top: 2rem;
+                transform: translateX(-50%);
+                animation: bounce-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+            .animate-fade-out {
+                animation: fade-out 0.5s ease forwards;
+            }
+        </style>
+    <?php endif; ?>
 </body>
 </html>

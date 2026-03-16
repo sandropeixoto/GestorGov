@@ -31,7 +31,7 @@ if (!isset($_SESSION['user_email'])) {
                 if ($u_data) {
                     $_SESSION['user_id']    = $u_data['id'];
                     $_SESSION['user_name']  = $u_data['nome'];
-                    $_SESSION['user_level'] = $u_data['nivel'];
+                    $_SESSION['user_level'] = trim($u_data['nivel']);
                 } else {
                     // Fallback para usuários SEFA que não estão na tabela 'usuarios'
                     $_SESSION['user_id']    = 0;
