@@ -25,7 +25,7 @@ if ($id) {
     $stmt_fs = $pdo->prepare("SELECT * FROM contratos_fiscais_setoriais WHERE contrato_id = ? ORDER BY id ASC");
     $stmt_fs->execute([$id]);
     $fiscais_setoriais = $stmt_fs->fetchAll();
-
+    
     $parentId = $contract['PaiId'] ?? 0;
 } elseif ($parentId) {
     $stmt = $pdo->prepare("SELECT c.*, p.CNPJ as PrestadorDoc, p.Nome as PrestadorNome 
@@ -51,33 +51,27 @@ if ($id) {
         $contract['ProgramaTrabalho'] = '';
         $contract['FuncionalProgramatica'] = '';
         $contract['NaturezaDespesa'] = '';
+        $contract['NumeroDiarioOficialContrato'] = '';
+        $contract['Observacao'] = '';
     }
 }
 
 $is_tac = $parentId > 0;
 $page_title = $id ? ($is_tac ? 'Editar Termo Aditivo' : 'Editar Contrato') : ($is_tac ? 'Novo Termo Aditivo' : 'Novo Contrato');
-?>
-// Fetch Categories for dropdown
-$categories = $pdo->query("SELECT Id, Descricao FROM CategoriaContrato ORDER BY Descricao ASC")->fetchAll();
 
-// Fetch Modalidades for dropdown
-$modalidades = $pdo->query("SELECT Id, Descricao FROM Modalidade ORDER BY Descricao ASC")->fetchAll();
-
-// Fetch Diretorias for dropdown
-$diretorias = $pdo->query("SELECT IdDiretoria, NomeDiretoria, SiglaDiretoria FROM Diretorias ORDER BY NomeDiretoria ASC")->fetchAll();
-
-// Fetch Fontes for dropdown
+// Fetch Dropdowns (apenas se for contrato pai, exceto Fontes que o TAC usa)
+$categories = $is_tac ? [] : $pdo->query("SELECT Id, Descricao FROM CategoriaContrato ORDER BY Descricao ASC")->fetchAll();
+$modalidades = $is_tac ? [] : $pdo->query("SELECT Id, Descricao FROM Modalidade ORDER BY Descricao ASC")->fetchAll();
+$diretorias = $is_tac ? [] : $pdo->query("SELECT IdDiretoria, NomeDiretoria, SiglaDiretoria FROM Diretorias ORDER BY NomeDiretoria ASC")->fetchAll();
+$coordenacoes = $is_tac ? [] : $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER BY Nome ASC")->fetchAll();
 $fontes = $pdo->query("SELECT IdFonte, NomeFonte FROM FontesRecursos ORDER BY NomeFonte ASC")->fetchAll();
-
-// Fetch Coordenacoes for dropdown
-$coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER BY Nome ASC")->fetchAll();
 ?>
 
 <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-3xl font-bold text-base-content"><?php echo $page_title; ?></h2>
-            <p class="text-base-content/60"><?php echo $is_tac ? 'Vincular novo termo aditivo ao contrato principal.' : 'Preencha os campos abaixo com as informações do contrato.'; ?></p>
+            <p class="text-base-content/60"><?php echo $is_tac ? 'Vincular novo termo aditivo ao contrato principal.' : 'Preencha os campos abaixo.'; ?></p>
         </div>
         <a href="<?php echo $is_tac && !$id ? 'contract_view.php?id='.$parentId : 'contratos.php'; ?>" class="btn btn-ghost gap-2">
             <i class="ph ph-arrow-left"></i> Voltar
@@ -92,295 +86,284 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
             <input type="hidden" name="id" value="<?php echo $id; ?>">
         <?php endif; ?>
 
+        <?php if ($is_tac): ?>
+            <!-- Campos Herdados Ocultos para TAC (Integridade) -->
+            <input type="hidden" name="PrestadorId" value="<?php echo $contract['PrestadorId'] ?? ''; ?>">
+            <input type="hidden" name="DiretoriaId" value="<?php echo $contract['DiretoriaId'] ?? ''; ?>">
+            <input type="hidden" name="CoordenacaoId" value="<?php echo $contract['CoordenacaoId'] ?? ''; ?>">
+            <input type="hidden" name="CategoriaContratoId" value="<?php echo $contract['CategoriaContratoId'] ?? ''; ?>">
+            <input type="hidden" name="ModalidadeId" value="<?php echo $contract['ModalidadeId'] ?? ''; ?>">
+            <input type="hidden" name="FiscalContrato" value="<?php echo htmlspecialchars($contract['FiscalContrato'] ?? ''); ?>">
+            <input type="hidden" name="EmailFiscal" value="<?php echo htmlspecialchars($contract['EmailFiscal'] ?? ''); ?>">
+            <input type="hidden" name="AnoContrato" value="">
+        <?php endif; ?>
+
         <div class="card-body space-y-8">
-            <!-- Informações Básicas -->
-            <section>
-                <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
-                    <i class="ph ph-info text-primary"></i> Informações Básicas
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="form-control md:col-span-1">
-                        <label class="label"><span class="label-text font-semibold"><?php echo $is_tac ? 'N. TAC' : 'Número'; ?></span></label>
-                        <input type="number" name="SeqContrato" required class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['SeqContrato'] ?? ''); ?>" placeholder="Ex: 45">
-                    </div>
-                    <?php if (!$is_tac): ?>
-                    <div class="form-control md:col-span-1">
-                        <label class="label"><span class="label-text font-semibold">Ano</span></label>
-                        <input type="number" name="AnoContrato" required class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['AnoContrato'] ?? date('Y')); ?>">
-                    </div>
-                    <?php else: ?>
-                        <input type="hidden" name="AnoContrato" value="">
-                    <?php endif; ?>
-                    <div class="form-control <?php echo $is_tac ? 'md:col-span-3' : 'md:col-span-2'; ?>">
-                        <label class="label"><span class="label-text font-semibold">Número do Processo</span></label>
-                        <input type="text" name="NProcesso" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['NProcesso'] ?? ''); ?>">
-                    </div>
-                    <div class="form-control md:col-span-4">
-                        <label class="label"><span class="label-text font-semibold"><?php echo $is_tac ? 'Justificativa (Objeto)' : 'Objeto'; ?></span></label>
-                        <textarea name="Objeto" required class="textarea textarea-bordered h-24" 
-                                  placeholder="Descrição detalhada..."><?php echo htmlspecialchars($contract['Objeto'] ?? ''); ?></textarea>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Datas e Vigência -->
-            <section>
-                <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
-                    <i class="ph ph-calendar text-primary"></i> Datas e Vigência
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="form-control md:col-span-1">
-                        <label class="label"><span class="label-text font-semibold">Data Assinatura</span></label>
-                        <input type="date" name="DataAssinatura" required class="input input-bordered w-full max-w-[180px]" 
-                               value="<?php echo $contract['DataAssinatura'] ?? ''; ?>">
-                    </div>
-                    <div class="form-control md:col-span-1">
-                        <label class="label"><span class="label-text font-semibold">Início Vigência</span></label>
-                        <input type="date" name="VigenciaInicio" required class="input input-bordered w-full max-w-[180px]" 
-                               value="<?php echo $contract['VigenciaInicio'] ?? ''; ?>">
-                    </div>
-                    <div class="form-control md:col-span-1">
-                        <label class="label"><span class="label-text font-semibold">Fim Vigência</span></label>
-                        <input type="date" name="VigenciaFim" required class="input input-bordered w-full max-w-[180px]" 
-                               value="<?php echo $contract['VigenciaFim'] ?? ''; ?>">
-                    </div>
-                </div>
-            </section>
-
-            <!-- Fornecedor e Valores -->
-            <section>
-                <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
-                    <i class="ph ph-briefcase text-primary"></i> Fornecedor e Valores
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="form-control md:col-span-2">
-                        <label class="label">
-                            <span class="label-text font-semibold">Documento do Fornecedor (CPF/CNPJ)</span>
-                            <a href="prestadores.php" target="_blank" class="label-text-alt link link-primary flex items-center gap-1">
-                                <i class="ph ph-plus-circle"></i> Novo Fornecedor
-                            </a>
-                        </label>
-                        <div class="flex gap-2">
-                            <div class="relative flex-1">
-                                <input type="text" id="prestador_doc" class="input input-bordered w-full pr-10" 
-                                       placeholder="Digite o documento para buscar..."
-                                       value="<?php echo htmlspecialchars($contract['PrestadorDoc'] ?? ''); ?>"
-                                       onblur="buscarPrestador(this.value)">
-                                <div id="doc_loading" class="absolute right-3 top-3 hidden">
-                                    <span class="loading loading-spinner loading-sm opacity-50"></span>
-                                </div>
-                            </div>
-                            <input type="hidden" name="PrestadorId" id="PrestadorId" required value="<?php echo $contract['PrestadorId'] ?? ''; ?>">
+            
+            <!-- SEÇÃO TAC (Apenas se for TAC) - Campos Estritamente Conforme Lista -->
+            <?php if ($is_tac): ?>
+                <section>
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                        <i class="ph ph-file-text text-primary"></i> Informações do Termo (TAC)
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="form-control md:col-span-1">
+                            <label class="label"><span class="label-text font-semibold">N. Tac</span></label>
+                            <input type="number" name="SeqContrato" required class="input input-bordered" value="<?php echo htmlspecialchars($contract['SeqContrato'] ?? ''); ?>">
                         </div>
-                        <div id="prestador_info" class="mt-2 p-3 bg-base-200 rounded-lg border border-base-300 flex items-center gap-3 <?php echo isset($contract['PrestadorNome']) ? '' : 'hidden'; ?>">
-                            <i class="ph ph-check-circle text-success text-xl"></i>
-                            <div>
-                                <p class="text-xs uppercase font-bold opacity-50">Nome do Fornecedor:</p>
-                                <p id="prestador_nome" class="font-bold"><?php echo htmlspecialchars($contract['PrestadorNome'] ?? ''); ?></p>
-                            </div>
+                        <div class="form-control md:col-span-3">
+                            <label class="label"><span class="label-text font-semibold">Número do processo</span></label>
+                            <input type="text" name="NProcesso" class="input input-bordered" value="<?php echo htmlspecialchars($contract['NProcesso'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control md:col-span-4">
+                            <label class="label"><span class="label-text font-semibold">Fundamentação Legal</span></label>
+                            <input type="text" name="FundamentacaoLegal" class="input input-bordered" value="<?php echo htmlspecialchars($contract['FundamentacaoLegal'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control md:col-span-4">
+                            <label class="label"><span class="label-text font-semibold">Justificativa (Objeto)</span></label>
+                            <textarea name="Objeto" required class="textarea textarea-bordered h-24"><?php echo htmlspecialchars($contract['Objeto'] ?? ''); ?></textarea>
                         </div>
                     </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Valor Mensal (R$)</span></label>
-                        <input type="number" step="0.01" name="ValorMensalContrato" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['ValorMensalContrato'] ?? ''); ?>" placeholder="0.00">
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Valor Global (R$)</span></label>
-                        <input type="number" step="0.01" name="ValorGlobalContrato" required class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['ValorGlobalContrato'] ?? ''); ?>" placeholder="0.00">
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- Execução Orçamentária e TAC -->
-            <section>
-                <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
-                    <i class="ph ph-coins text-primary"></i> Execução Orçamentária <?php echo $is_tac ? 'e TAC' : ''; ?>
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Fundamentação Legal</span></label>
-                        <input type="text" name="FundamentacaoLegal" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['FundamentacaoLegal'] ?? ''); ?>" placeholder="Ex: Art. 57, inciso II da Lei 8.666/93">
+                <section>
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                        <i class="ph ph-calendar text-primary"></i> Vigência e Valores
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Vigência Início</span></label>
+                            <input type="date" name="VigenciaInicio" required class="input input-bordered" value="<?php echo $contract['VigenciaInicio'] ?? ''; ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Vigência Fim</span></label>
+                            <input type="date" name="VigenciaFim" required class="input input-bordered" value="<?php echo $contract['VigenciaFim'] ?? ''; ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Data Assinatura</span></label>
+                            <input type="date" name="DataAssinatura" required class="input input-bordered" value="<?php echo $contract['DataAssinatura'] ?? ''; ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Diário Oficial TAC</span></label>
+                            <input type="text" name="NumeroDiarioOficialContrato" class="input input-bordered" value="<?php echo htmlspecialchars($contract['NumeroDiarioOficialContrato'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text font-semibold">Valor Mensal Contrato</span></label>
+                            <input type="number" step="0.01" name="ValorMensalContrato" class="input input-bordered" value="<?php echo htmlspecialchars($contract['ValorMensalContrato'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text font-semibold">Valor Global Contrato</span></label>
+                            <input type="number" step="0.01" name="ValorGlobalContrato" required class="input input-bordered" value="<?php echo htmlspecialchars($contract['ValorGlobalContrato'] ?? ''); ?>">
+                        </div>
                     </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Programa de Trabalho</span></label>
-                        <input type="text" name="ProgramaTrabalho" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['ProgramaTrabalho'] ?? ''); ?>">
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Funcional Programática</span></label>
-                        <input type="text" name="FuncionalProgramatica" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['FuncionalProgramatica'] ?? ''); ?>">
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Natureza da Despesa</span></label>
-                        <input type="text" name="NaturezaDespesa" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['NaturezaDespesa'] ?? ''); ?>">
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Nº Fonte Recursos (Texto)</span></label>
-                        <input type="text" name="FonteRecursos" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['FonteRecursos'] ?? ''); ?>" placeholder="Ex: 0101">
-                    </div>
-                    <?php if ($is_tac): ?>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Diário Oficial TAC</span></label>
-                        <input type="text" name="NumeroDiarioOficialContrato" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['NumeroDiarioOficialContrato'] ?? ''); ?>">
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </section>
+                </section>
 
-            <!-- Fiscalização -->
-            <section>
-                <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
-                    <i class="ph ph-user-focus text-primary"></i> Fiscalização e Gestão
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Diretoria Resp.</span></label>
-                        <select name="DiretoriaId" class="select select-bordered w-full">
-                            <option value="">Selecione...</option>
-                            <?php foreach($diretorias as $d): ?>
-                                <option value="<?php echo $d['IdDiretoria']; ?>" <?php echo ($contract['DiretoriaId'] ?? '') == $d['IdDiretoria'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($d['SiglaDiretoria'] ?? ''); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                <section>
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                        <i class="ph ph-coins text-primary"></i> Execução Orçamentária
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Programa Trabalho</span></label>
+                            <input type="text" name="ProgramaTrabalho" class="input input-bordered" value="<?php echo htmlspecialchars($contract['ProgramaTrabalho'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Funcional Programática</span></label>
+                            <input type="text" name="FuncionalProgramatica" class="input input-bordered" value="<?php echo htmlspecialchars($contract['FuncionalProgramatica'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Natureza da Despesa</span></label>
+                            <input type="text" name="NaturezaDespesa" class="input input-bordered" value="<?php echo htmlspecialchars($contract['NaturezaDespesa'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Fonte de Recursos</span></label>
+                            <select name="FonteRecursosId" class="select select-bordered w-full">
+                                <option value="">Selecione...</option>
+                                <?php foreach($fontes as $f): ?>
+                                    <option value="<?php echo $f['IdFonte']; ?>" <?php echo ($contract['FonteRecursosId'] ?? '') == $f['IdFonte'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($f['NomeFonte'] ?? ''); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text font-semibold">No Fonte Recursos</span></label>
+                            <input type="text" name="FonteRecursos" class="input input-bordered" value="<?php echo htmlspecialchars($contract['FonteRecursos'] ?? ''); ?>" placeholder="Texto livre">
+                        </div>
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text font-semibold">Observação</span></label>
+                            <textarea name="Observacao" class="textarea textarea-bordered h-20"><?php echo htmlspecialchars($contract['Observacao'] ?? ''); ?></textarea>
+                        </div>
                     </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Coordenador da área</span></label>
-                        <select name="CoordenacaoId" class="select select-bordered w-full">
-                            <option value="">Selecione...</option>
-                            <?php foreach($coordenacoes as $c): ?>
-                                <option value="<?php echo $c['Id']; ?>" <?php echo ($contract['CoordenacaoId'] ?? '') == $c['Id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($c['Nome'] ?? ''); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Fiscal Titular</span></label>
-                        <input type="text" name="FiscalContrato" class="input input-bordered w-full" 
-                               value="<?php echo htmlspecialchars($contract['FiscalContrato'] ?? ''); ?>">
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">E-mail do Fiscal</span></label>
-                        <input type="email" name="EmailFiscal" class="input input-bordered w-full" 
-                               value="<?php echo htmlspecialchars($contract['EmailFiscal'] ?? ''); ?>">
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Fiscal Substituto</span></label>
-                        <input type="text" name="FiscalSubstituto" class="input input-bordered w-full" 
-                               value="<?php echo htmlspecialchars($contract['FiscalSubstituto'] ?? ''); ?>">
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">E-mail do Substituto</span></label>
-                        <input type="email" name="EmailFiscalSubstituto" class="input input-bordered w-full" 
-                               value="<?php echo htmlspecialchars($contract['EmailFiscalSubstituto'] ?? ''); ?>">
-                    </div>
-                </div>
+                </section>
 
-                <!-- Fiscais Setoriais -->
-                <div class="mt-8 p-6 bg-base-200/50 rounded-2xl border border-base-300">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-sm font-bold uppercase opacity-60 flex items-center gap-2">
-                            <i class="ph ph-users-three"></i> Fiscais Setoriais
-                        </h4>
-                        <button type="button" onclick="addFiscalSetorial()" class="btn btn-xs btn-primary gap-1">
-                            <i class="ph ph-plus-circle"></i> Adicionar Fiscal
-                        </button>
+            <!-- SEÇÃO CONTRATO ORIGINAL (Apenas se NÃO for TAC) -->
+            <?php else: ?>
+                <section>
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                        <i class="ph ph-info text-primary"></i> Informações Básicas
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="form-control md:col-span-1">
+                            <label class="label"><span class="label-text font-semibold">Número</span></label>
+                            <input type="number" name="SeqContrato" required class="input input-bordered" value="<?php echo htmlspecialchars($contract['SeqContrato'] ?? ''); ?>" placeholder="Ex: 45">
+                        </div>
+                        <div class="form-control md:col-span-1">
+                            <label class="label"><span class="label-text font-semibold">Ano</span></label>
+                            <input type="number" name="AnoContrato" required class="input input-bordered" value="<?php echo htmlspecialchars($contract['AnoContrato'] ?? date('Y')); ?>">
+                        </div>
+                        <div class="form-control md:col-span-4">
+                            <label class="label"><span class="label-text font-semibold">Objeto</span></label>
+                            <textarea name="Objeto" required class="textarea textarea-bordered h-24" placeholder="Descrição detalhada do contrato..."><?php echo htmlspecialchars($contract['Objeto'] ?? ''); ?></textarea>
+                        </div>
                     </div>
-                    
-                    <div id="fiscais-setoriais-container" class="space-y-3">
-                        <?php foreach ($fiscais_setoriais as $fs): ?>
-                            <div class="flex flex-col md:flex-row gap-3 bg-white p-3 rounded-lg shadow-sm border border-base-200 relative">
-                                <button type="button" onclick="this.parentElement.remove()" class="btn btn-circle btn-xs btn-error absolute -top-2 -right-2 text-white shadow-md"><i class="ph ph-x"></i></button>
-                                <div class="form-control flex-1">
-                                    <input type="text" name="fs_nome[]" placeholder="Nome do Fiscal" class="input input-bordered input-sm w-full" value="<?php echo htmlspecialchars($fs['nome']); ?>" required>
+                </section>
+
+                <section>
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                        <i class="ph ph-calendar text-primary"></i> Datas e Vigência
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Data Assinatura</span></label>
+                            <input type="date" name="DataAssinatura" required class="input input-bordered" value="<?php echo $contract['DataAssinatura'] ?? ''; ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Início Vigência</span></label>
+                            <input type="date" name="VigenciaInicio" required class="input input-bordered" value="<?php echo $contract['VigenciaInicio'] ?? ''; ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Fim Vigência</span></label>
+                            <input type="date" name="VigenciaFim" required class="input input-bordered" value="<?php echo $contract['VigenciaFim'] ?? ''; ?>">
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                        <i class="ph ph-briefcase text-primary"></i> Fornecedor e Valores
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-control md:col-span-2">
+                            <label class="label">
+                                <span class="label-text font-semibold">Documento do Fornecedor (CPF/CNPJ)</span>
+                                <a href="prestadores.php" target="_blank" class="label-text-alt link link-primary flex items-center gap-1">
+                                    <i class="ph ph-plus-circle"></i> Novo Fornecedor
+                                </a>
+                            </label>
+                            <div class="flex gap-2">
+                                <div class="relative flex-1">
+                                    <input type="text" id="prestador_doc" class="input input-bordered w-full pr-10" placeholder="Digite o documento para buscar..." value="<?php echo htmlspecialchars($contract['PrestadorDoc'] ?? ''); ?>" onblur="buscarPrestador(this.value)">
+                                    <div id="doc_loading" class="absolute right-3 top-3 hidden"><span class="loading loading-spinner loading-sm opacity-50"></span></div>
                                 </div>
-                                <div class="form-control flex-1">
-                                    <input type="email" name="fs_email[]" placeholder="E-mail" class="input input-bordered input-sm w-full" value="<?php echo htmlspecialchars($fs['email']); ?>">
+                                <input type="hidden" name="PrestadorId" id="PrestadorId" required value="<?php echo $contract['PrestadorId'] ?? ''; ?>">
+                            </div>
+                            <div id="prestador_info" class="mt-2 p-3 bg-base-200 rounded-lg border border-base-300 flex items-center gap-3 <?php echo isset($contract['PrestadorNome']) ? '' : 'hidden'; ?>">
+                                <i class="ph ph-check-circle text-success text-xl"></i>
+                                <div>
+                                    <p class="text-xs uppercase font-bold opacity-50">Nome do Fornecedor:</p>
+                                    <p id="prestador_nome" class="font-bold"><?php echo htmlspecialchars($contract['PrestadorNome'] ?? ''); ?></p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                        
-                        <?php if (empty($fiscais_setoriais)): ?>
-                            <div id="no-fiscais-msg" class="text-center py-4 opacity-40 italic text-xs">
-                                Nenhum fiscal setorial adicionado.
-                            </div>
-                        <?php endif; ?>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Valor Mensal (R$)</span></label>
+                            <input type="number" step="0.01" name="ValorMensalContrato" class="input input-bordered" value="<?php echo htmlspecialchars($contract['ValorMensalContrato'] ?? ''); ?>" placeholder="0.00">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Valor Global (R$)</span></label>
+                            <input type="number" step="0.01" name="ValorGlobalContrato" required class="input input-bordered" value="<?php echo htmlspecialchars($contract['ValorGlobalContrato'] ?? ''); ?>" placeholder="0.00">
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- Outros Detalhes -->
-            <section>
-                <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
-                    <i class="ph ph-plus text-primary"></i> Outros Detalhes
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Categoria</span></label>
-                        <select name="CategoriaContratoId" class="select select-bordered w-full">
-                            <option value="">Selecione...</option>
-                            <?php foreach($categories as $cat): ?>
-                                <option value="<?php echo $cat['Id']; ?>" <?php echo ($contract['CategoriaContratoId'] ?? '') == $cat['Id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($cat['Descricao'] ?? ''); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                <section>
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                        <i class="ph ph-user-focus text-primary"></i> Fiscalização e Gestão
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Diretoria Resp.</span></label>
+                            <select name="DiretoriaId" class="select select-bordered w-full">
+                                <option value="">Selecione...</option>
+                                <?php foreach($diretorias as $d): ?>
+                                    <option value="<?php echo $d['IdDiretoria']; ?>" <?php echo ($contract['DiretoriaId'] ?? '') == $d['IdDiretoria'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($d['SiglaDiretoria'] ?? ''); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Coordenador da área</span></label>
+                            <select name="CoordenacaoId" class="select select-bordered w-full">
+                                <option value="">Selecione...</option>
+                                <?php foreach($coordenacoes as $c): ?>
+                                    <option value="<?php echo $c['Id']; ?>" <?php echo ($contract['CoordenacaoId'] ?? '') == $c['Id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($c['Nome'] ?? ''); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Fiscal Titular</span></label>
+                            <input type="text" name="FiscalContrato" class="input input-bordered w-full" value="<?php echo htmlspecialchars($contract['FiscalContrato'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">E-mail do Fiscal</span></label>
+                            <input type="email" name="EmailFiscal" class="input input-bordered w-full" value="<?php echo htmlspecialchars($contract['EmailFiscal'] ?? ''); ?>">
+                        </div>
                     </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Fonte de Recurso</span></label>
-                        <select name="FonteRecursosId" class="select select-bordered w-full">
-                            <option value="">Selecione...</option>
-                            <?php foreach($fontes as $f): ?>
-                                <option value="<?php echo $f['IdFonte']; ?>" <?php echo ($contract['FonteRecursosId'] ?? '') == $f['IdFonte'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($f['NomeFonte'] ?? ''); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                </section>
+
+                <section>
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4 flex items-center gap-2">
+                        <i class="ph ph-plus text-primary"></i> Outros Detalhes
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Categoria</span></label>
+                            <select name="CategoriaContratoId" class="select select-bordered w-full">
+                                <option value="">Selecione...</option>
+                                <?php foreach($categories as $cat): ?>
+                                    <option value="<?php echo $cat['Id']; ?>" <?php echo ($contract['CategoriaContratoId'] ?? '') == $cat['Id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat['Descricao'] ?? ''); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Fonte de Recurso</span></label>
+                            <select name="FonteRecursosId" class="select select-bordered w-full">
+                                <option value="">Selecione...</option>
+                                <?php foreach($fontes as $f): ?>
+                                    <option value="<?php echo $f['IdFonte']; ?>" <?php echo ($contract['FonteRecursosId'] ?? '') == $f['IdFonte'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($f['NomeFonte'] ?? ''); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Número do Processo</span></label>
+                            <input type="text" name="NProcesso" class="input input-bordered" value="<?php echo htmlspecialchars($contract['NProcesso'] ?? ''); ?>">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Modalidade</span></label>
+                            <select name="ModalidadeId" class="select select-bordered w-full">
+                                <option value="">Selecione...</option>
+                                <?php foreach($modalidades as $m): ?>
+                                    <option value="<?php echo $m['Id']; ?>" <?php echo ($contract['ModalidadeId'] ?? '') == $m['Id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($m['Descricao'] ?? ''); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold">Número da Modalidade</span></label>
+                            <input type="text" name="NumeroModalidade" class="input input-bordered" value="<?php echo htmlspecialchars($contract['NumeroModalidade'] ?? ''); ?>" placeholder="Ex: 002/2021">
+                        </div>
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text font-semibold">Observação</span></label>
+                            <textarea name="Observacao" class="textarea textarea-bordered h-20"><?php echo htmlspecialchars($contract['Observacao'] ?? ''); ?></textarea>
+                        </div>
                     </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Número do Processo</span></label>
-                        <input type="text" name="NProcesso" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['NProcesso'] ?? ''); ?>">
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Modalidade</span></label>
-                        <select name="ModalidadeId" class="select select-bordered w-full">
-                            <option value="">Selecione...</option>
-                            <?php foreach($modalidades as $m): ?>
-                                <option value="<?php echo $m['Id']; ?>" <?php echo ($contract['ModalidadeId'] ?? '') == $m['Id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($m['Descricao'] ?? ''); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Número da Modalidade</span></label>
-                        <input type="text" name="NumeroModalidade" class="input input-bordered" 
-                               value="<?php echo htmlspecialchars($contract['NumeroModalidade'] ?? ''); ?>" placeholder="Ex: 002/2021">
-                    </div>
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Observação</span></label>
-                        <textarea name="Observacao" class="textarea textarea-bordered h-20" placeholder="Observações adicionais..."><?php echo htmlspecialchars($contract['Observacao'] ?? ''); ?></textarea>
-                    </div>
-                </div>
-            </section>
+                </section>
+            <?php endif; ?>
         </div>
 
         <div class="card-footer p-8 bg-base-200/50 flex justify-end gap-3">
-            <a href="contratos.php" class="btn btn-ghost">Cancelar</a>
+            <a href="<?php echo $is_tac && !$id ? 'contract_view.php?id='.$parentId : 'contratos.php'; ?>" class="btn btn-ghost">Cancelar</a>
             <button type="submit" class="btn btn-primary px-8 shadow-lg">
-                <i class="ph ph-floppy-disk text-xl"></i> Salvar Contrato
+                <i class="ph ph-floppy-disk text-xl"></i> Salvar <?php echo $is_tac ? 'Termo' : 'Contrato'; ?>
             </button>
         </div>
     </form>
@@ -389,14 +372,11 @@ $coordenacoes = $pdo->query("SELECT Id, Nome FROM contratos_coordenacoes ORDER B
 <script>
 function buscarPrestador(doc) {
     if (doc.length < 3) return;
-    
     const loading = document.getElementById('doc_loading');
     const info = document.getElementById('prestador_info');
     const nome = document.getElementById('prestador_nome');
     const inputId = document.getElementById('PrestadorId');
-    
     loading.classList.remove('hidden');
-    
     fetch('ajax_prestador.php?doc=' + encodeURIComponent(doc))
         .then(response => response.json())
         .then(data => {
@@ -407,35 +387,11 @@ function buscarPrestador(doc) {
                 info.classList.remove('hidden');
                 info.classList.add('flex');
             } else {
-                nome.innerText = '';
-                inputId.value = '';
-                info.classList.add('hidden');
-                alert('Fornecedor não encontrado com este documento.');
+                nome.innerText = ''; inputId.value = ''; info.classList.add('hidden');
+                alert('Fornecedor não encontrado.');
             }
         })
-        .catch(error => {
-            loading.classList.add('hidden');
-            console.error('Erro:', error);
-        });
-}
-
-function addFiscalSetorial() {
-    const container = document.getElementById('fiscais-setoriais-container');
-    const noMsg = document.getElementById('no-fiscais-msg');
-    if(noMsg) noMsg.remove();
-
-    const div = document.createElement('div');
-    div.className = 'flex flex-col md:flex-row gap-3 bg-white p-3 rounded-lg shadow-sm border border-base-200 relative';
-    div.innerHTML = `
-        <button type="button" onclick="this.parentElement.remove()" class="btn btn-circle btn-xs btn-error absolute -top-2 -right-2 text-white shadow-md"><i class="ph ph-x"></i></button>
-        <div class="form-control flex-1">
-            <input type="text" name="fs_nome[]" placeholder="Nome do Fiscal" class="input input-bordered input-sm w-full" required>
-        </div>
-        <div class="form-control flex-1">
-            <input type="email" name="fs_email[]" placeholder="E-mail" class="input input-bordered input-sm w-full">
-        </div>
-    `;
-    container.appendChild(div);
+        .catch(error => { loading.classList.add('hidden'); console.error('Erro:', error); });
 }
 </script>
 
