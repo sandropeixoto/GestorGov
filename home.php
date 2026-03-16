@@ -45,7 +45,7 @@ function getModuleUrl($m) {
     <main class="flex-1 flex flex-col items-center justify-center p-8">
         <div class="max-w-4xl w-full text-center space-y-12">
             <div>
-                <h2 class="text-5xl font-black text-slate-900 tracking-tight mb-4 animate-fade-in">Módulos do Sistema</h2>
+                <h2 class="text-5xl font-black text-slate-900 tracking-tight mb-4 animate-fade-in">Portal de Sistemas</h2>
                 <p class="text-xl text-slate-500 max-w-2xl mx-auto">Selecione o módulo que deseja gerenciar hoje. Mais ferramentas estarão disponíveis em breve.</p>
             </div>
 
