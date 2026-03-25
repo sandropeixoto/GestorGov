@@ -101,3 +101,133 @@ O `sso_payload` decodificado conterá:
 - Utilize o e-mail recebido para vincular o usuário a um registro existente no seu banco de dados local.
 - Se o usuário não existir localmente, você pode optar por criá-lo automaticamente (Just-in-Time Provisioning) usando os dados do payload.
 - Mantenha a `SSO_SECRET_KEY` protegida em variáveis de ambiente (`.env`).
+
+---
+
+## 5. Gestão de Usuários, Perfis e Acesso ao Sistema
+
+### 5.1 Níveis de Acesso via Payload SSO
+
+O campo `user_level` do payload define o perfil do usuário no módulo receptor:
+
+| `user_level` | Perfil         | Permissões                                         |
+|:---:|----------------|-----------------------------------------------------|
+| 1  | Administrador  | CRUD completo, configurações do módulo               |
+| 2  | Operador       | Criação e edição de registros                        |
+| 3  | Visualizador   | Somente leitura (sem criação, edição ou exclusão)    |
+
+O módulo deve inspecionar esse campo e aplicar as restrições de interface e de API correspondentes antes de renderizar qualquer conteúdo.
+
+### 5.2 Liga/Desliga — Acesso Público para Consulta
+
+O módulo pode implementar um **interruptor de acesso público de leitura**, que, quando ativado, permite que **qualquer pessoa autenticada via SSO** acesse o sistema em modo **somente leitura** (visualização/consulta), independentemente do `user_level` recebido.
+
+> [!IMPORTANT]
+> Esta configuração **não substitui** a autenticação SSO. O token ainda deve ser válido e não expirado. O que muda é que, em vez de negar o acesso a usuários sem perfil explicitamente cadastrado, o sistema os recebe com permissões mínimas de consulta.
+
+**Comportamento esperado quando o interruptor estiver LIGADO:**
+- Usuários com `user_level` não mapeado localmente são tratados como **Visitante/Consulta**.
+- Nenhuma ação de escrita (POST/PUT/DELETE) é permitida via interface ou API.
+- Botões de criação, edição e exclusão devem ser **ocultados ou desabilitados**.
+- Uma faixa informativa deve ser exibida: *"Você está acessando em modo somente leitura."*
+
+**Comportamento esperado quando o interruptor estiver DESLIGADO:**
+- Apenas usuários com perfil cadastrado localmente (`user_level` 1 ou 2) têm acesso.
+- Demais usuários devem ser redirecionados para uma página de acesso negado.
+
+**Exemplo de implementação da verificação (PHP):**
+
+```php
+// Em config.php ou similar
+define('PUBLIC_READONLY_ACCESS', true); // true = ligado, false = desligado
+
+// Em auth_sso.php, após validar o token:
+$user_level = (int)($user_data['user_level'] ?? 0);
+$is_local_user = in_array($user_level, [1, 2]); // níveis com acesso completo
+
+if (!$is_local_user) {
+    if (!PUBLIC_READONLY_ACCESS) {
+        header("Location: acesso_negado.php");
+        exit;
+    }
+    // Acesso público: força modo de somente leitura
+    $_SESSION['readonly_mode'] = true;
+    $_SESSION['user_profile']  = 'visitante';
+} else {
+    $_SESSION['readonly_mode'] = false;
+    $_SESSION['user_profile']  = ($user_level === 1) ? 'admin' : 'operador';
+}
+```
+
+> [!TIP]
+> Armazene a chave `PUBLIC_READONLY_ACCESS` em uma tabela de configurações do banco de dados para permitir que administradores do módulo alterem o interruptor via painel, sem necessidade de deploy.
+
+---
+
+## 6. Log de Acesso de Usuários
+
+### 6.1 Por que registrar acessos?
+
+O registro de acessos é **obrigatório** em sistemas integrados ao GestorGov por três razões principais:
+
+1. **Rastreabilidade e auditoria** — permite identificar quem consultou ou alterou informações sensíveis e em qual momento.
+2. **Segurança** — detecta tentativas de acesso indevido ou padrões anômalos (ex: volume alto de consultas por um visitante).
+3. **Conformidade** — atende às exigências da LGPD quanto ao controle de acesso a dados de terceiros.
+
+### 6.2 Distinção entre Usuários Cadastrados e Visitantes
+
+É fundamental diferenciar os dois tipos de acesso no log:
+
+| Tipo            | Origem                          | Critério de Identificação                            |
+|-----------------|---------------------------------|------------------------------------------------------|
+| **Cadastrado**  | `user_level` 1 ou 2 (local DB)  | `user_id` mapeado na tabela local de usuários        |
+| **Visitante**   | SSO válido, sem cadastro local  | `user_id` presente no payload mas ausente localmente |
+
+> [!WARNING]
+> **Não registre apenas os acessos de usuários cadastrados.** O acesso de visitantes (modo somente leitura) também deve ser persistido — eles representam um vetor de risco caso o interruptor de acesso público esteja ativado inadvertidamente.
+
+### 6.3 Estrutura Recomendada da Tabela de Log
+
+```sql
+CREATE TABLE access_log (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    user_id      INT          NOT NULL COMMENT 'ID do GestorGov (do payload SSO)',
+    user_email   VARCHAR(255) NOT NULL,
+    user_profile ENUM('admin','operador','visitante') NOT NULL,
+    action       VARCHAR(100) NOT NULL COMMENT 'Ex: LOGIN, VIEW_CONTRACT, EXPORT',
+    resource_id  INT          NULL     COMMENT 'ID do recurso acessado, se aplicável',
+    ip_address   VARCHAR(45)  NOT NULL,
+    accessed_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user    (user_id),
+    INDEX idx_profile (user_profile),
+    INDEX idx_time    (accessed_at)
+);
+```
+
+### 6.4 Exemplo de Registro de Acesso (PHP)
+
+```php
+function log_access(PDO $pdo, array $user_data, string $action, ?int $resource_id = null): void {
+    $stmt = $pdo->prepare("
+        INSERT INTO access_log (user_id, user_email, user_profile, action, resource_id, ip_address)
+        VALUES (:uid, :email, :profile, :action, :rid, :ip)
+    ");
+    $stmt->execute([
+        ':uid'     => $user_data['user_id'],
+        ':email'   => $user_data['user_email'],
+        ':profile' => $_SESSION['user_profile'] ?? 'visitante',
+        ':action'  => $action,
+        ':rid'     => $resource_id,
+        ':ip'      => $_SERVER['REMOTE_ADDR'],
+    ]);
+}
+
+// Uso após autenticação SSO bem-sucedida:
+log_access($pdo, $user_data, 'LOGIN');
+
+// Uso ao acessar um contrato:
+log_access($pdo, $user_data, 'VIEW_CONTRACT', $contract_id);
+```
+
+> [!NOTE]
+> Retenha os logs por no mínimo **12 meses** e implemente uma rotina de purge automático para registros mais antigos, garantindo conformidade com políticas de retenção de dados.
